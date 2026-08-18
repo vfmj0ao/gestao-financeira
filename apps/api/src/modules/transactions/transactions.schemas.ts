@@ -25,3 +25,9 @@ export const createTransactionSchema = z.object({
   categoryId: z.string().min(1, 'Escolha uma categoria'),
 });
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;
+
+export const createCategorySchema = z.object({
+  name: z.string().trim().min(2, 'Informe o nome').max(40, 'Nome muito longo'),
+  type: z.enum(['INCOME', 'EXPENSE']),
+});
+export type CreateCategoryInput = z.infer<typeof createCategorySchema>;

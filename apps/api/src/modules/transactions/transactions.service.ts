@@ -7,7 +7,10 @@ import { Prisma } from '@prisma/client';
 import { MembershipAccessService } from '../../common/auth/membership-access.service';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { dateFromDay, formatMoney, monthRange, parseMoney } from './money';
-import type { CreateTransactionInput } from './transactions.schemas';
+import type {
+  CreateCategoryInput,
+  CreateTransactionInput,
+} from './transactions.schemas';
 import { TransactionsRepository } from './transactions.repository';
 
 @Injectable()
@@ -114,6 +117,83 @@ export class TransactionsService {
     });
 
     return this.toPublic(created);
+  }
+
+  async update(
+    user: AuthenticatedUser,
+    groupId: string,
+    transactionId: string,
+    input: CreateTransactionInput,
+  ) {
+    await this.membershipAccess.requirePermission(
+      user.id,
+      groupId,
+      'TRANSACTIONS_UPDATE',
+    );
+    const existing = await this.transactionsRepository.findInGroup(
+      transactionId,
+      groupId,
+    );
+    if (!existing) {
+      throw new NotFoundException('Lançamento não encontrado');
+    }
+
+    const category = await this.transactionsRepository.findCategoryInGroup(
+      input.categoryId,
+      groupId,
+      input.type,
+    );
+    if (!category) {
+      throw new BadRequestException(
+        'Categoria inválida para este tipo de lançamento',
+      );
+    }
+
+    let amount: Prisma.Decimal;
+    try {
+      amount = parseMoney(input.amount);
+    } catch {
+      throw new BadRequestException(
+        'Informe um valor maior que zero, com até 2 casas decimais',
+      );
+    }
+
+    const updated = await this.transactionsRepository.update(existing.id, {
+      categoryId: category.id,
+      type: input.type,
+      amount,
+      description: input.description,
+      occurredAt: dateFromDay(input.occurredOn),
+    });
+    return this.toPublic(updated);
+  }
+
+  async createCategory(
+    user: AuthenticatedUser,
+    groupId: string,
+    input: CreateCategoryInput,
+  ) {
+    await this.membershipAccess.requirePermission(
+      user.id,
+      groupId,
+      'CATEGORIES_MANAGE',
+    );
+    try {
+      const category = await this.transactionsRepository.createCategory(
+        groupId,
+        input.name,
+        input.type,
+      );
+      return { id: category.id, name: category.name, type: category.type };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new BadRequestException('Já existe uma categoria com esse nome');
+      }
+      throw error;
+    }
   }
 
   async remove(

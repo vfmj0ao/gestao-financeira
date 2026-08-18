@@ -138,4 +138,26 @@ export class GroupsRepository {
       data: { acceptedAt: new Date() },
     });
   }
+
+  async replaceRole(
+    membershipId: string,
+    role: MembershipRole,
+    db: DbClient = this.prisma,
+  ) {
+    await db.membership.update({
+      where: { id: membershipId },
+      data: { role },
+    });
+    await db.membershipPermission.deleteMany({ where: { membershipId } });
+    await db.membershipPermission.createMany({
+      data: ROLE_PERMISSIONS[role].map((permission) => ({
+        membershipId,
+        permission,
+      })),
+    });
+  }
+
+  deleteMembership(membershipId: string, db: DbClient = this.prisma) {
+    return db.membership.delete({ where: { id: membershipId } });
+  }
 }

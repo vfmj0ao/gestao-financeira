@@ -53,3 +53,43 @@ export type MonthSummary = {
   expense: string;
   balance: string;
 };
+
+export type InvestmentItem = {
+  id: string;
+  name: string;
+  ticker: string | null;
+  amount: string;
+  quantity: string | null;
+  investedOn: string;
+};
+
+export type InvestmentSummary = {
+  total: string;
+};
+
+export type ReportCategoryTotal = {
+  name: string;
+  amount: string;
+};
+
+export type ReportMonthRow = {
+  month: string;
+  income: string;
+  expense: string;
+  balance: string;
+  accumulated: string;
+};
+
+export type GroupReport = {
+  from: string;
+  to: string;
+  months: ReportMonthRow[];
+  totals: {
+    income: string;
+    expense: string;
+    balance: string;
+  };
+  expenseByCategory: ReportCategoryTotal[];
+  incomeByCategory: ReportCategoryTotal[];
+  investmentsTotal: string | null;
+};

@@ -10,6 +10,7 @@ import { generateUrlToken, hashToken } from '../../common/auth/token';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 import type { InviteMemberInput } from '../auth/auth.schemas';
+import type { CreateGroupInput, UpdateMemberRoleInput } from './groups.schemas';
 import { GroupsRepository } from './groups.repository';
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -27,6 +28,18 @@ export class GroupsService {
     db?: Prisma.TransactionClient,
   ) {
     return this.groupsRepository.createOwnedGroup(name, ownerId, db);
+  }
+
+  async createGroup(user: AuthenticatedUser, input: CreateGroupInput) {
+    const group = await this.groupsRepository.createOwnedGroup(
+      input.name,
+      user.id,
+    );
+    return {
+      id: group.id,
+      name: group.name,
+      role: 'OWNER' as const,
+    };
   }
 
   async listMine(userId: string) {
@@ -168,6 +181,74 @@ export class GroupsService {
       return run(db);
     }
     return this.prisma.$transaction((tx) => run(tx));
+  }
+
+  async updateMemberRole(
+    actor: AuthenticatedUser,
+    groupId: string,
+    memberUserId: string,
+    input: UpdateMemberRoleInput,
+  ) {
+    const actorMembership = await this.requirePermission(
+      actor.id,
+      groupId,
+      'MEMBERS_UPDATE_ROLE',
+    );
+    const target = await this.groupsRepository.findMembership(
+      memberUserId,
+      groupId,
+    );
+    if (!target) {
+      throw new NotFoundException('Membro não encontrado');
+    }
+    if (target.role === 'OWNER') {
+      throw new ForbiddenException(
+        'O responsável do grupo não pode ter o papel alterado',
+      );
+    }
+    if (actorMembership.role !== 'OWNER' && target.role === 'ADMIN') {
+      throw new ForbiddenException(
+        'Somente o responsável pode alterar um administrador',
+      );
+    }
+    await this.groupsRepository.replaceRole(target.id, input.role);
+    return { ok: true as const };
+  }
+
+  async removeMember(
+    actor: AuthenticatedUser,
+    groupId: string,
+    memberUserId: string,
+  ) {
+    const target = await this.groupsRepository.findMembership(
+      memberUserId,
+      groupId,
+    );
+    if (!target) {
+      throw new NotFoundException('Membro não encontrado');
+    }
+    if (target.role === 'OWNER') {
+      throw new ForbiddenException(
+        'O responsável não pode sair nem ser removido',
+      );
+    }
+
+    const isSelf = actor.id === memberUserId;
+    if (!isSelf) {
+      const actorMembership = await this.requirePermission(
+        actor.id,
+        groupId,
+        'MEMBERS_REMOVE',
+      );
+      if (actorMembership.role !== 'OWNER' && target.role === 'ADMIN') {
+        throw new ForbiddenException(
+          'Somente o responsável pode remover um administrador',
+        );
+      }
+    }
+
+    await this.groupsRepository.deleteMembership(target.id);
+    return { ok: true as const };
   }
 
   private async requirePermission(

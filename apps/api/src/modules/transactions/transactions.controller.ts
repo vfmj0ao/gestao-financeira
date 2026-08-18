@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -13,8 +14,10 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 import {
+  createCategorySchema,
   createTransactionSchema,
   monthQuerySchema,
+  type CreateCategoryInput,
   type CreateTransactionInput,
   type MonthQuery,
 } from './transactions.schemas';
@@ -59,6 +62,16 @@ export class TransactionsController {
     );
   }
 
+  @Post('categories')
+  createCategory(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('groupId') groupId: string,
+    @Body(new ZodValidationPipe(createCategorySchema))
+    body: CreateCategoryInput,
+  ) {
+    return this.transactionsService.createCategory(user, groupId, body);
+  }
+
   @Post('transactions')
   create(
     @CurrentUser() user: AuthenticatedUser,
@@ -67,6 +80,17 @@ export class TransactionsController {
     body: CreateTransactionInput,
   ) {
     return this.transactionsService.create(user, groupId, body);
+  }
+
+  @Patch('transactions/:transactionId')
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('groupId') groupId: string,
+    @Param('transactionId') transactionId: string,
+    @Body(new ZodValidationPipe(createTransactionSchema))
+    body: CreateTransactionInput,
+  ) {
+    return this.transactionsService.update(user, groupId, transactionId, body);
   }
 
   @Delete('transactions/:transactionId')

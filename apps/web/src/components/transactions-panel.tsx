@@ -12,12 +12,15 @@ type TransactionsPanelProps = {
 
 export function TransactionsPanel({ groupId, permissions }: TransactionsPanelProps) {
   const canCreate = permissions.includes('TRANSACTIONS_CREATE');
+  const canUpdate = permissions.includes('TRANSACTIONS_UPDATE');
   const canDelete = permissions.includes('TRANSACTIONS_DELETE');
+  const canManageCategories = permissions.includes('CATEGORIES_MANAGE');
   const [month, setMonth] = useState(currentMonth);
   const [summary, setSummary] = useState<MonthSummary | null>(null);
   const [items, setItems] = useState<TransactionItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [type, setType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE');
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -25,6 +28,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
     () => categories.filter((category) => category.type === type),
     [categories, type],
   );
+  const editing = items.find((item) => item.id === editingId) ?? null;
 
   useEffect(() => {
     void (async () => {
@@ -50,18 +54,23 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
     setError(null);
     const form = event.currentTarget;
     const data = new FormData(form);
+    const payload = {
+      type,
+      amount: String(data.get('amount') ?? ''),
+      description: String(data.get('description') ?? ''),
+      occurredOn: String(data.get('occurredOn') ?? ''),
+      categoryId: String(data.get('categoryId') ?? ''),
+    };
     try {
-      await apiFetch<TransactionItem>(`/groups/${groupId}/transactions`, {
-        method: 'POST',
-        body: JSON.stringify({
-          type,
-          amount: String(data.get('amount') ?? ''),
-          description: String(data.get('description') ?? ''),
-          occurredOn: String(data.get('occurredOn') ?? ''),
-          categoryId: String(data.get('categoryId') ?? ''),
-        }),
+      const path = editingId
+        ? `/groups/${groupId}/transactions/${editingId}`
+        : `/groups/${groupId}/transactions`;
+      await apiFetch<TransactionItem>(path, {
+        method: editingId ? 'PATCH' : 'POST',
+        body: JSON.stringify(payload),
       });
       form.reset();
+      setEditingId(null);
       const [listData, summaryData] = await Promise.all([
         apiFetch<TransactionItem[]>(`/groups/${groupId}/transactions?month=${month}`),
         apiFetch<MonthSummary>(`/groups/${groupId}/summary?month=${month}`),
@@ -83,6 +92,9 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
     setError(null);
     try {
       await apiFetch(`/groups/${groupId}/transactions/${id}`, { method: 'DELETE' });
+      if (editingId === id) {
+        setEditingId(null);
+      }
       setItems((current) => current.filter((item) => item.id !== id));
       const summaryData = await apiFetch<MonthSummary>(`/groups/${groupId}/summary?month=${month}`);
       setSummary(summaryData);
@@ -91,6 +103,30 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
         deleteError instanceof Error
           ? deleteError.message
           : 'Não foi possível excluir o lançamento',
+      );
+    }
+  }
+
+  async function handleCategory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    try {
+      const created = await apiFetch<Category>(`/groups/${groupId}/categories`, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: String(data.get('categoryName') ?? ''),
+          type,
+        }),
+      });
+      setCategories((current) => [...current, created]);
+      form.reset();
+    } catch (categoryError) {
+      setError(
+        categoryError instanceof Error
+          ? categoryError.message
+          : 'Não foi possível criar a categoria',
       );
     }
   }
@@ -145,8 +181,9 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
         </p>
       ) : null}
 
-      {canCreate ? (
+      {canCreate || (canUpdate && editing) ? (
         <form
+          key={editingId ?? 'new-transaction'}
           onSubmit={(event) => void handleCreate(event)}
           className="grid gap-4 rounded-md border border-zinc-200 p-4 dark:border-zinc-800 sm:grid-cols-2"
         >
@@ -183,6 +220,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
               inputMode="decimal"
               required
               placeholder="0,00"
+              defaultValue={editing?.amount.replace('.', ',') ?? ''}
               className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
             />
           </div>
@@ -195,7 +233,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
               name="occurredOn"
               type="date"
               required
-              defaultValue={todayISODate()}
+              defaultValue={editing?.occurredOn ?? todayISODate()}
               className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
             />
           </div>
@@ -207,6 +245,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
               id="categoryId"
               name="categoryId"
               required
+              defaultValue={editing?.category?.id ?? ''}
               className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
             >
               <option value="">Selecione</option>
@@ -226,22 +265,59 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
               name="description"
               required
               maxLength={120}
+              defaultValue={editing?.description ?? ''}
               className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
             />
           </div>
-          <div className="sm:col-span-2">
+          <div className="flex gap-3 sm:col-span-2">
             <button
               type="submit"
               disabled={pending}
               className="rounded-md bg-foreground px-4 py-2.5 text-background hover:opacity-90 disabled:opacity-60"
             >
-              {pending ? 'Salvando…' : 'Adicionar lançamento'}
+              {pending ? 'Salvando…' : editingId ? 'Salvar alteração' : 'Adicionar lançamento'}
             </button>
+            {editingId ? (
+              <button
+                type="button"
+                onClick={() => setEditingId(null)}
+                className="rounded-md px-4 py-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+              >
+                Cancelar
+              </button>
+            ) : null}
           </div>
         </form>
       ) : (
         <p className="text-sm text-zinc-500">Sua permissão neste grupo é só de consulta.</p>
       )}
+
+      {canManageCategories ? (
+        <form
+          onSubmit={(event) => void handleCategory(event)}
+          className="flex max-w-md flex-col gap-3 rounded-md border border-dashed border-zinc-300 p-4 dark:border-zinc-700"
+        >
+          <p className="text-sm font-medium">
+            Nova categoria ({type === 'INCOME' ? 'entrada' : 'saída'})
+          </p>
+          <label htmlFor="categoryName" className="sr-only">
+            Nome da categoria
+          </label>
+          <input
+            id="categoryName"
+            name="categoryName"
+            required
+            placeholder="Ex.: Assinaturas"
+            className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+          />
+          <button
+            type="submit"
+            className="w-fit rounded-md px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+          >
+            Criar categoria
+          </button>
+        </form>
+      ) : null}
 
       {items.length === 0 ? (
         <p className="text-sm text-zinc-500">Nenhum lançamento neste mês.</p>
@@ -270,6 +346,18 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
                   {item.type === 'INCOME' ? '+' : '-'}
                   {formatBRL(item.amount)}
                 </p>
+                {canUpdate ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(item.id);
+                      setType(item.type);
+                    }}
+                    className="rounded-md px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                  >
+                    Editar
+                  </button>
+                ) : null}
                 {canDelete ? (
                   <button
                     type="button"

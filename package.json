@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:logs": "docker compose logs -f postgres"
+    "db:logs": "docker compose logs -f postgres",
+    "prisma:deploy": "pnpm --filter @gestao-financeira/api exec prisma migrate deploy"
   },
   "devDependencies": {
     "prettier": "^3.9.6"

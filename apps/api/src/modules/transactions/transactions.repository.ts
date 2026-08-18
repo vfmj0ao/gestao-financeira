@@ -69,6 +69,30 @@ export class TransactionsRepository {
   findInGroup(id: string, groupId: string) {
     return this.prisma.transaction.findFirst({
       where: { id, groupId },
+      include: { category: true },
+    });
+  }
+
+  update(
+    id: string,
+    data: {
+      categoryId: string;
+      type: TransactionType;
+      amount: Prisma.Decimal;
+      description: string;
+      occurredAt: Date;
+    },
+  ) {
+    return this.prisma.transaction.update({
+      where: { id },
+      data,
+      include: { category: true },
+    });
+  }
+
+  createCategory(groupId: string, name: string, type: TransactionType) {
+    return this.prisma.category.create({
+      data: { groupId, name, type },
     });
   }
 

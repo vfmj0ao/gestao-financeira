@@ -6,6 +6,8 @@ import { PrismaModule } from './common/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { HealthModule } from './modules/health/health.module';
+import { InvestmentsModule } from './modules/investments/investments.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { UsersModule } from './modules/users/users.module';
 
@@ -16,7 +18,7 @@ import { UsersModule } from './modules/users/users.module';
       envFilePath: ['.env'],
     }),
     ThrottlerModule.forRoot({
-      throttlers: [{ name: 'default', ttl: 60_000, limit: 30 }],
+      throttlers: [{ name: 'default', ttl: 60_000, limit: 120 }],
     }),
     PrismaModule,
     HealthModule,
@@ -24,6 +26,8 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     GroupsModule,
     TransactionsModule,
+    InvestmentsModule,
+    ReportsModule,
   ],
   providers: [
     {

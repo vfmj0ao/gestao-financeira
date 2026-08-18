@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -10,6 +19,12 @@ import {
   type AcceptInviteInput,
   type InviteMemberInput,
 } from '../auth/auth.schemas';
+import {
+  createGroupSchema,
+  updateMemberRoleSchema,
+  type CreateGroupInput,
+  type UpdateMemberRoleInput,
+} from './groups.schemas';
 import { GroupsService } from './groups.service';
 
 @Controller('groups')
@@ -22,12 +37,45 @@ export class GroupsController {
     return this.groupsService.listMine(user.id);
   }
 
+  @Post()
+  create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body(new ZodValidationPipe(createGroupSchema)) body: CreateGroupInput,
+  ) {
+    return this.groupsService.createGroup(user, body);
+  }
+
   @Get(':groupId/members')
   listMembers(
     @CurrentUser() user: AuthenticatedUser,
     @Param('groupId') groupId: string,
   ) {
     return this.groupsService.listMembers(user, groupId);
+  }
+
+  @Patch(':groupId/members/:memberUserId')
+  updateMemberRole(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('groupId') groupId: string,
+    @Param('memberUserId') memberUserId: string,
+    @Body(new ZodValidationPipe(updateMemberRoleSchema))
+    body: UpdateMemberRoleInput,
+  ) {
+    return this.groupsService.updateMemberRole(
+      user,
+      groupId,
+      memberUserId,
+      body,
+    );
+  }
+
+  @Delete(':groupId/members/:memberUserId')
+  removeMember(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('groupId') groupId: string,
+    @Param('memberUserId') memberUserId: string,
+  ) {
+    return this.groupsService.removeMember(user, groupId, memberUserId);
   }
 
   @Post(':groupId/invites')
