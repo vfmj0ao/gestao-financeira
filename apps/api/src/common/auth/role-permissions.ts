@@ -1,0 +1,43 @@
+import { MembershipRole, Permission } from '@prisma/client';
+
+export const ROLE_PERMISSIONS: Record<MembershipRole, Permission[]> = {
+  OWNER: [
+    Permission.GROUP_MANAGE,
+    Permission.MEMBERS_INVITE,
+    Permission.MEMBERS_REMOVE,
+    Permission.MEMBERS_UPDATE_ROLE,
+    Permission.TRANSACTIONS_READ,
+    Permission.TRANSACTIONS_CREATE,
+    Permission.TRANSACTIONS_UPDATE,
+    Permission.TRANSACTIONS_DELETE,
+    Permission.INVESTMENTS_READ,
+    Permission.INVESTMENTS_CREATE,
+    Permission.INVESTMENTS_UPDATE,
+    Permission.INVESTMENTS_DELETE,
+    Permission.CATEGORIES_MANAGE,
+  ],
+  ADMIN: [
+    Permission.MEMBERS_INVITE,
+    Permission.MEMBERS_REMOVE,
+    Permission.MEMBERS_UPDATE_ROLE,
+    Permission.TRANSACTIONS_READ,
+    Permission.TRANSACTIONS_CREATE,
+    Permission.TRANSACTIONS_UPDATE,
+    Permission.TRANSACTIONS_DELETE,
+    Permission.INVESTMENTS_READ,
+    Permission.INVESTMENTS_CREATE,
+    Permission.INVESTMENTS_UPDATE,
+    Permission.INVESTMENTS_DELETE,
+    Permission.CATEGORIES_MANAGE,
+  ],
+  EDITOR: [
+    Permission.TRANSACTIONS_READ,
+    Permission.TRANSACTIONS_CREATE,
+    Permission.TRANSACTIONS_UPDATE,
+    Permission.INVESTMENTS_READ,
+    Permission.INVESTMENTS_CREATE,
+    Permission.INVESTMENTS_UPDATE,
+    Permission.CATEGORIES_MANAGE,
+  ],
+  VIEWER: [Permission.TRANSACTIONS_READ, Permission.INVESTMENTS_READ],
+};

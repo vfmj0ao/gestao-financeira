@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { SiteHeader } from '@/components/site-header';
 import { Providers } from './providers';
 import './globals.css';
 
@@ -29,7 +30,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         >
           Pular para o conteúdo
         </a>
-        <Providers>{children}</Providers>
+        <Providers>
+          <SiteHeader />
+          {children}
+        </Providers>
       </body>
     </html>
   );

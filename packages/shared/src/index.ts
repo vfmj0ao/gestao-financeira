@@ -21,6 +21,8 @@ export type Permission = (typeof PERMISSIONS)[number];
 export const TRANSACTION_TYPES = ['INCOME', 'EXPENSE'] as const;
 export type TransactionType = (typeof TRANSACTION_TYPES)[number];
 
+export * from './auth';
+
 export const ROLE_PERMISSIONS: Record<MembershipRole, readonly Permission[]> = {
   OWNER: PERMISSIONS,
   ADMIN: [

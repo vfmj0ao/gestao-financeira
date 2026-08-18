@@ -9,5 +9,8 @@
   "types": "./src/index.ts",
   "scripts": {
     "lint": "echo \"shared: sem lint dedicado ainda\""
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
   }
 }
