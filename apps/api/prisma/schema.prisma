@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum Permission {
+  GROUP_MANAGE
+  MEMBERS_INVITE
+  MEMBERS_REMOVE
+  MEMBERS_UPDATE_ROLE
+  TRANSACTIONS_READ
+  TRANSACTIONS_CREATE
+  TRANSACTIONS_UPDATE
+  TRANSACTIONS_DELETE
+  INVESTMENTS_READ
+  INVESTMENTS_CREATE
+  INVESTMENTS_UPDATE
+  INVESTMENTS_DELETE
+  CATEGORIES_MANAGE
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships   Membership[]
+  refreshTokens RefreshToken[]
+  sentInvites   Invitation[]   @relation("InvitedBy")
+  ownedGroups   Group[]        @relation("GroupOwner")
+}
+
+model Group {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner         User          @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  memberships   Membership[]
+  invitations   Invitation[]
+  categories    Category[]
+  transactions  Transaction[]
+  investments   Investment[]
+
+  @@index([ownerId])
+}
+
+model Membership {
+  id        String         @id @default(cuid())
+  userId    String
+  groupId   String
+  role      MembershipRole @default(VIEWER)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group       Group                  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  permissions MembershipPermission[]
+
+  @@unique([userId, groupId])
+  @@index([groupId])
+}
+
+model MembershipPermission {
+  id           String     @id @default(cuid())
+  membershipId String
+  permission   Permission
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@unique([membershipId, permission])
+}
+
+model Invitation {
+  id          String         @id @default(cuid())
+  email       String
+  groupId     String
+  role        MembershipRole @default(VIEWER)
+  tokenHash   String         @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  invitedById String
+  createdAt   DateTime       @default(now())
+
+  group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  invitedBy User  @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: Restrict)
+
+  @@index([email, groupId])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Category {
+  id        String          @id @default(cuid())
+  groupId   String
+  name      String
+  type      TransactionType
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  group        Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([groupId, name, type])
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  groupId     String
+  categoryId  String?
+  type        TransactionType
+  amount      Decimal         @db.Decimal(19, 4)
+  description String
+  occurredAt  DateTime
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  @@index([groupId, occurredAt])
+}
+
+model Investment {
+  id         String   @id @default(cuid())
+  groupId    String
+  name       String
+  ticker     String?
+  amount     Decimal  @db.Decimal(19, 4)
+  quantity   Decimal? @db.Decimal(19, 8)
+  investedAt DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+}

@@ -1,0 +1,23 @@
+{
+  "name": "gestao-financeira",
+  "private": true,
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @gestao-financeira/web --filter @gestao-financeira/api dev",
+    "dev:web": "pnpm --filter @gestao-financeira/web dev",
+    "dev:api": "pnpm --filter @gestao-financeira/api dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6"
+  }
+}
