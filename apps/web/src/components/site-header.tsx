@@ -1,12 +1,26 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/auth-provider';
+
+const APP_PREFIXES = [
+  '/painel',
+  '/lancamentos',
+  '/investimentos',
+  '/relatorios',
+  '/familia',
+  '/ajustes',
+];
 
 export function SiteHeader() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  if (APP_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+    return null;
+  }
 
   async function handleLogout() {
     await logout();
@@ -29,13 +43,7 @@ export function SiteHeader() {
                 className="rounded-md px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900"
                 href="/painel"
               >
-                Painel
-              </Link>
-              <Link
-                className="rounded-md px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900"
-                href="/relatorios"
-              >
-                Relatórios
+                Início
               </Link>
               <button
                 type="button"
