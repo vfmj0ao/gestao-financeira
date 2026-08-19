@@ -24,7 +24,7 @@ import {
   maskMoney,
 } from '@/lib/money';
 import { amountToCents } from '@/lib/trend';
-import type { GroupReport, InvestmentSummary, TransactionItem } from '@/lib/types';
+import type { BudgetMonth, GroupReport, InvestmentSummary, TransactionItem } from '@/lib/types';
 
 const INCOME_COLOR = '#0f766e';
 const EXPENSE_COLOR = '#be123c';
@@ -39,6 +39,7 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
   const [txFilter, setTxFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
   const [error, setError] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
+  const [overBudgets, setOverBudgets] = useState<{ name: string }[]>([]);
 
   useEffect(() => {
     void (async () => {
@@ -75,6 +76,16 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
         setTxError(
           loadError instanceof Error ? loadError.message : 'Não foi possível carregar lançamentos',
         );
+      }
+      try {
+        const budgetData = await apiFetch<BudgetMonth>(
+          `/groups/${groupId}/budgets?month=${selectedMonth}`,
+        );
+        setOverBudgets(
+          budgetData.items.filter((item) => item.over).map((item) => ({ name: item.name })),
+        );
+      } catch {
+        setOverBudgets([]);
       }
     })();
   }, [groupId, selectedMonth]);
@@ -239,6 +250,15 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
           ) : null}
         </div>
       </article>
+
+      {overBudgets.length > 0 ? (
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200">
+          Acima do limite: {overBudgets.map((item) => item.name).join(', ')}.{' '}
+          <Link className="underline" href="/orcamentos">
+            Orçamentos
+          </Link>
+        </p>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-3">
         <MetricCard

@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BudgetsModule } from './modules/budgets/budgets.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { HealthModule } from './modules/health/health.module';
 import { InvestmentsModule } from './modules/investments/investments.module';
@@ -26,6 +27,7 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     GroupsModule,
     TransactionsModule,
+    BudgetsModule,
     InvestmentsModule,
     ReportsModule,
   ],

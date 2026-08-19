@@ -7,6 +7,7 @@ import { useAuth } from '@/components/auth-provider';
 const APP_PREFIXES = [
   '/painel',
   '/lancamentos',
+  '/orcamentos',
   '/investimentos',
   '/relatorios',
   '/familia',

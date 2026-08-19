@@ -8,6 +8,7 @@ import { useAuth } from '@/components/auth-provider';
 const NAV = [
   { href: '/painel', label: 'Início' },
   { href: '/lancamentos', label: 'Lançamentos' },
+  { href: '/orcamentos', label: 'Orçamentos' },
   { href: '/investimentos', label: 'Investimentos' },
   { href: '/relatorios', label: 'Relatórios' },
   { href: '/familia', label: 'Família' },

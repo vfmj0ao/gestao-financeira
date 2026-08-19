@@ -62,6 +62,7 @@ model Group {
   categories    Category[]
   transactions  Transaction[]
   investments   Investment[]
+  budgets       CategoryBudget[]
 
   @@index([ownerId])
 }
@@ -130,8 +131,9 @@ model Category {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
-  group        Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group        Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  budgets      CategoryBudget[]
 
   @@unique([groupId, name, type])
 }
@@ -151,6 +153,22 @@ model Transaction {
   category Category? @relation(fields: [categoryId], references: [id])
 
   @@index([groupId, occurredAt])
+}
+
+model CategoryBudget {
+  id         String   @id @default(cuid())
+  groupId    String
+  categoryId String
+  month      String
+  amount     Decimal  @db.Decimal(19, 4)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, categoryId, month])
+  @@index([groupId, month])
 }
 
 model Investment {
