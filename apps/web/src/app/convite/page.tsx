@@ -6,6 +6,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import { apiFetch, ApiError } from '@/lib/api';
 import type { InvitePreview } from '@/lib/types';
+import { alertErrorClass, btnGhostClass, btnPrimaryClass, surfaceClass } from '@/lib/ui';
 
 function InviteContent() {
   const searchParams = useSearchParams();
@@ -55,11 +56,12 @@ function InviteContent() {
       id="conteudo-principal"
       className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-6 py-12"
     >
-      <h1 className="text-2xl font-semibold tracking-tight">Convite para o grupo</h1>
+      <div className={`${surfaceClass} flex flex-col gap-4 p-6`}>
+      <h1 className="text-2xl tracking-tight">Convite para o grupo</h1>
       {error ? (
         <p
           role="alert"
-          className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className={alertErrorClass}
         >
           {error}
         </p>
@@ -77,7 +79,7 @@ function InviteContent() {
             </strong>
             .
           </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm text-muted">
             Use o e-mail {preview.email} para entrar.
           </p>
           {loading ? (
@@ -87,20 +89,20 @@ function InviteContent() {
               type="button"
               onClick={() => void accept()}
               disabled={pending}
-              className="w-fit rounded-md bg-foreground px-4 py-2.5 text-background hover:opacity-90 disabled:opacity-60"
+              className={`w-fit ${btnPrimaryClass}`}
             >
               {pending ? 'Entrando…' : 'Aceitar convite'}
             </button>
           ) : (
             <div className="flex flex-wrap gap-3">
               <Link
-                className="rounded-md bg-foreground px-4 py-2.5 text-background hover:opacity-90"
+                className={btnPrimaryClass}
                 href={`/cadastro?token=${encodeURIComponent(token)}&email=${encodeURIComponent(preview.email)}`}
               >
                 Criar conta e entrar
               </Link>
               <Link
-                className="rounded-md border border-zinc-300 px-4 py-2.5 hover:bg-zinc-50 dark:border-zinc-700"
+                className={`${btnGhostClass} border border-line`}
                 href={`/entrar?next=${encodeURIComponent(`/convite?token=${token}`)}`}
               >
                 Já tenho conta
@@ -109,6 +111,7 @@ function InviteContent() {
           )}
         </>
       ) : null}
+      </div>
     </main>
   );
 }

@@ -4,6 +4,7 @@ import { RequireAuth } from '@/components/require-auth';
 import { MembersPanel } from '@/components/members-panel';
 import { useAuth } from '@/components/auth-provider';
 import { apiFetch, ApiError } from '@/lib/api';
+import { alertErrorClass, fieldClass, btnPrimaryClass, surfaceClass } from '@/lib/ui';
 import { useState, type FormEvent } from 'react';
 
 export default function FamilyPage() {
@@ -38,9 +39,12 @@ export default function FamilyPage() {
   return (
     <RequireAuth nextPath="/familia">
       <main id="conteudo-principal" className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-8 lg:px-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Família</h1>
+        <h1 className="text-3xl tracking-tight">Família</h1>
 
-        <form onSubmit={(event) => void handleCreateGroup(event)} className="flex max-w-md flex-col gap-2">
+        <form
+          onSubmit={(event) => void handleCreateGroup(event)}
+          className={`${surfaceClass} flex max-w-md flex-col gap-2 p-5`}
+        >
           <label htmlFor="new-group-name" className="text-sm font-medium">
             Novo grupo
           </label>
@@ -51,19 +55,19 @@ export default function FamilyPage() {
               required
               minLength={2}
               placeholder="Ex.: Família, Pessoal"
-              className="flex-1 rounded-lg border border-zinc-300 bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-600"
+              className={`flex-1 ${fieldClass}`}
             />
             <button
               type="submit"
               disabled={creatingGroup}
-              className="rounded-lg bg-foreground px-4 py-2 text-background hover:opacity-90 disabled:opacity-60"
+              className={btnPrimaryClass}
             >
               Criar
             </button>
           </div>
         </form>
         {groupError ? (
-          <p role="alert" className="text-sm text-red-700">
+          <p role="alert" className={alertErrorClass}>
             {groupError}
           </p>
         ) : null}

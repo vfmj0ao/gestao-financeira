@@ -6,6 +6,7 @@ import { currentMonth, maskMoney, shiftMonth, todayISODate } from '@/lib/money';
 import type { Category, MonthSummary, TransactionItem } from '@/lib/types';
 import { TrendBadge } from '@/components/trend-badge';
 import { usePreferences } from '@/components/preferences-provider';
+import { alertErrorClass, btnGhostClass, btnPrimaryClass, fieldClass, listClass, surfaceClass } from '@/lib/ui';
 
 type TransactionsPanelProps = {
   groupId: string;
@@ -152,16 +153,16 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
             type="month"
             value={month}
             onChange={(event) => setMonth(event.target.value)}
-            className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+            className={fieldClass}
           />
         </div>
       </div>
 
       {summary ? (
         <dl className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-md border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+          <div className={`${surfaceClass} px-4 py-3`}>
             <div className="flex items-center justify-between gap-2">
-              <dt className="text-sm text-zinc-500">Entradas</dt>
+              <dt className="text-sm text-muted">Entradas</dt>
               {previousSummary ? (
                 <TrendBadge
                   current={summary.income}
@@ -170,13 +171,13 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
                 />
               ) : null}
             </div>
-            <dd className="mt-1 text-lg font-semibold text-emerald-700 dark:text-emerald-400">
+            <dd className="mt-1 text-lg font-semibold text-income">
               {maskMoney(summary.income, prefs.hideAmounts)}
             </dd>
           </div>
-          <div className="rounded-md border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+          <div className={`${surfaceClass} px-4 py-3`}>
             <div className="flex items-center justify-between gap-2">
-              <dt className="text-sm text-zinc-500">Saídas</dt>
+              <dt className="text-sm text-muted">Saídas</dt>
               {previousSummary ? (
                 <TrendBadge
                   current={summary.expense}
@@ -185,13 +186,13 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
                 />
               ) : null}
             </div>
-            <dd className="mt-1 text-lg font-semibold text-red-700 dark:text-red-400">
+            <dd className="mt-1 text-lg font-semibold text-expense">
               {maskMoney(summary.expense, prefs.hideAmounts)}
             </dd>
           </div>
-          <div className="rounded-md border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+          <div className={`${surfaceClass} px-4 py-3`}>
             <div className="flex items-center justify-between gap-2">
-              <dt className="text-sm text-zinc-500">Saldo</dt>
+              <dt className="text-sm text-muted">Saldo</dt>
               {previousSummary ? (
                 <TrendBadge
                   current={summary.balance}
@@ -210,7 +211,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
       {error ? (
         <p
           role="alert"
-          className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className={alertErrorClass}
         >
           {error}
         </p>
@@ -220,7 +221,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
         <form
           key={editingId ?? 'new-transaction'}
           onSubmit={(event) => void handleCreate(event)}
-          className="grid gap-4 rounded-md border border-zinc-200 p-4 dark:border-zinc-800 sm:grid-cols-2"
+          className={`grid gap-4 p-4 sm:grid-cols-2 sm:p-5 ${surfaceClass}`}
         >
           <fieldset className="sm:col-span-2">
             <legend className="mb-2 text-sm font-medium">Tipo</legend>
@@ -256,7 +257,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
               required
               placeholder="0,00"
               defaultValue={editing?.amount.replace('.', ',') ?? ''}
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -269,7 +270,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
               type="date"
               required
               defaultValue={editing?.occurredOn ?? todayISODate()}
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -281,7 +282,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
               name="categoryId"
               required
               defaultValue={editing?.category?.id ?? ''}
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             >
               <option value="">Selecione</option>
               {filteredCategories.map((category) => (
@@ -301,14 +302,14 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
               required
               maxLength={120}
               defaultValue={editing?.description ?? ''}
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             />
           </div>
           <div className="flex gap-3 sm:col-span-2">
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-foreground px-4 py-2.5 text-background hover:opacity-90 disabled:opacity-60"
+              className={btnPrimaryClass}
             >
               {pending ? 'Salvando…' : editingId ? 'Salvar alteração' : 'Adicionar lançamento'}
             </button>
@@ -316,7 +317,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
               <button
                 type="button"
                 onClick={() => setEditingId(null)}
-                className="rounded-md px-4 py-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                className={btnGhostClass}
               >
                 Cancelar
               </button>
@@ -324,13 +325,13 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
           </div>
         </form>
       ) : (
-        <p className="text-sm text-zinc-500">Sua permissão neste grupo é só de consulta.</p>
+        <p className="text-sm text-muted">Sua permissão neste grupo é só de consulta.</p>
       )}
 
       {canManageCategories ? (
         <form
           onSubmit={(event) => void handleCategory(event)}
-          className="flex max-w-md flex-col gap-3 rounded-md border border-dashed border-zinc-300 p-4 dark:border-zinc-700"
+          className="flex max-w-md flex-col gap-3 rounded-2xl border border-dashed border-line bg-card p-4"
         >
           <p className="text-sm font-medium">
             Nova categoria ({type === 'INCOME' ? 'entrada' : 'saída'})
@@ -343,11 +344,11 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
             name="categoryName"
             required
             placeholder="Ex.: Assinaturas"
-            className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+            className={fieldClass}
           />
           <button
             type="submit"
-            className="w-fit rounded-md px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+            className={btnGhostClass}
           >
             Criar categoria
           </button>
@@ -355,9 +356,9 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
       ) : null}
 
       {items.length === 0 ? (
-        <p className="text-sm text-zinc-500">Nenhum lançamento neste mês.</p>
+        <p className="text-sm text-muted">Nenhum lançamento neste mês.</p>
       ) : (
-        <ul className="divide-y divide-zinc-200 rounded-md border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+        <ul className={listClass}>
           {items.map((item) => (
             <li
               key={item.id}
@@ -365,7 +366,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
             >
               <div>
                 <p className="font-medium">{item.description}</p>
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-muted">
                   {item.category?.name ?? 'Sem categoria'} ·{' '}
                   {item.occurredOn.split('-').reverse().join('/')}
                 </p>
@@ -374,8 +375,8 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
                 <p
                   className={
                     item.type === 'INCOME'
-                      ? 'font-semibold text-emerald-700 dark:text-emerald-400'
-                      : 'font-semibold text-red-700 dark:text-red-400'
+                      ? 'font-semibold text-income'
+                      : 'font-semibold text-expense'
                   }
                 >
                   {item.type === 'INCOME' ? '+' : '-'}
@@ -388,7 +389,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
                       setEditingId(item.id);
                       setType(item.type);
                     }}
-                    className="rounded-md px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    className={`${btnGhostClass} text-muted`}
                   >
                     Editar
                   </button>
@@ -397,7 +398,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
                   <button
                     type="button"
                     onClick={() => void handleDelete(item.id)}
-                    className="rounded-md px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    className={`${btnGhostClass} text-muted`}
                   >
                     Excluir
                   </button>

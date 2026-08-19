@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import { apiFetch, ApiError } from '@/lib/api';
 import type { GroupMember } from '@/lib/types';
+import { alertErrorClass, btnGhostClass, btnPrimaryClass, fieldClass, listClass, surfaceClass } from '@/lib/ui';
 
 const ROLE_LABEL: Record<string, string> = {
   OWNER: 'Responsável',
@@ -120,15 +121,15 @@ export function MembersPanel({
       {error ? (
         <p
           role="alert"
-          className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className={alertErrorClass}
         >
           {error}
         </p>
       ) : null}
       {members.length === 0 ? (
-        <p className="text-sm text-zinc-500">Nenhum membro carregado ainda.</p>
+        <p className="text-sm text-muted">Nenhum membro carregado ainda.</p>
       ) : (
-        <ul className="divide-y divide-zinc-200 rounded-md border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+        <ul className={listClass}>
           {members.map((member) => (
             <li
               key={member.id}
@@ -139,7 +140,7 @@ export function MembersPanel({
                   {member.name}
                   {member.id === currentUserId ? ' (você)' : ''}
                 </p>
-                <p className="text-sm text-zinc-500">{member.email}</p>
+                <p className="text-sm text-muted">{member.email}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {canUpdateRole && canManage(member) ? (
@@ -152,14 +153,14 @@ export function MembersPanel({
                     id={`role-${member.id}`}
                     value={member.role}
                     onChange={(event) => void handleRoleChange(member.id, event.target.value)}
-                    className="rounded-md border border-zinc-300 bg-transparent px-2 py-1 text-sm dark:border-zinc-700"
+                    className={`${fieldClass} py-1.5`}
                   >
                     <option value="VIEWER">Visualizador</option>
                     <option value="EDITOR">Editor</option>
                     <option value="ADMIN">Administrador</option>
                   </select>
                 ) : (
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="text-sm text-muted">
                     {ROLE_LABEL[member.role] ?? member.role}
                   </p>
                 )}
@@ -168,7 +169,7 @@ export function MembersPanel({
                   <button
                     type="button"
                     onClick={() => void handleRemove(member.id)}
-                    className="rounded-md px-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    className={btnGhostClass}
                   >
                     {member.id === currentUserId ? 'Sair do grupo' : 'Remover'}
                   </button>
@@ -182,7 +183,7 @@ export function MembersPanel({
       {canInvite ? (
         <form
           onSubmit={(event) => void handleInvite(event)}
-          className="mt-2 flex max-w-md flex-col gap-4"
+          className={`mt-2 flex max-w-md flex-col gap-4 p-5 ${surfaceClass}`}
         >
           <h3 className="text-lg font-semibold">Convidar membro</h3>
           <div className="flex flex-col gap-2">
@@ -194,7 +195,7 @@ export function MembersPanel({
               name="email"
               type="email"
               required
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -205,7 +206,7 @@ export function MembersPanel({
               id="invite-role"
               name="role"
               defaultValue="VIEWER"
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             >
               <option value="VIEWER">Visualizador — só consulta</option>
               <option value="EDITOR">Editor — lança e edita</option>
@@ -215,7 +216,7 @@ export function MembersPanel({
           <button
             type="submit"
             disabled={pending}
-            className="rounded-md bg-foreground px-4 py-2.5 text-background hover:opacity-90 disabled:opacity-60"
+            className={btnPrimaryClass}
           >
             {pending ? 'Gerando convite…' : 'Gerar convite'}
           </button>

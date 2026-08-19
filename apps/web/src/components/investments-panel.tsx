@@ -6,7 +6,7 @@ import { apiFetch, ApiError } from '@/lib/api';
 import { chartNumber, maskMoney, todayISODate } from '@/lib/money';
 import type { InvestmentItem, InvestmentSummary } from '@/lib/types';
 import { usePreferences } from '@/components/preferences-provider';
-import { surfaceClass } from '@/lib/ui';
+import { alertErrorClass, btnGhostClass, btnPrimaryClass, fieldClass, listClass, surfaceClass } from '@/lib/ui';
 
 const PIE_COLORS = [
   '#0f5c56',
@@ -202,7 +202,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
       {error ? (
         <p
           role="alert"
-          className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className={alertErrorClass}
         >
           {error}
         </p>
@@ -212,7 +212,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
         <form
           key={editingId ?? 'new-investment'}
           onSubmit={(event) => void handleSubmit(event)}
-          className="grid gap-4 rounded-md border border-zinc-200 p-4 dark:border-zinc-800 sm:grid-cols-2"
+          className={`grid gap-4 p-4 sm:grid-cols-2 sm:p-5 ${surfaceClass}`}
         >
           <div className="flex flex-col gap-2">
             <label htmlFor="inv-name" className="text-sm font-medium">
@@ -223,7 +223,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
               name="name"
               required
               defaultValue={editing?.name}
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -234,7 +234,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
               id="inv-ticker"
               name="ticker"
               defaultValue={editing?.ticker ?? ''}
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -247,7 +247,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
               inputMode="decimal"
               required
               defaultValue={editing?.amount.replace('.', ',') ?? ''}
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -259,7 +259,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
               name="quantity"
               inputMode="decimal"
               defaultValue={editing?.quantity?.replace('.', ',') ?? ''}
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             />
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
@@ -272,14 +272,14 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
               type="date"
               required
               defaultValue={editing?.investedOn ?? todayISODate()}
-              className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+              className={fieldClass}
             />
           </div>
           <div className="flex gap-3 sm:col-span-2">
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-foreground px-4 py-2.5 text-background hover:opacity-90 disabled:opacity-60"
+              className={btnPrimaryClass}
             >
               {pending ? 'Salvando…' : editingId ? 'Salvar alteração' : 'Adicionar investimento'}
             </button>
@@ -287,7 +287,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
               <button
                 type="button"
                 onClick={() => setEditingId(null)}
-                className="rounded-md px-4 py-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                className={btnGhostClass}
               >
                 Cancelar
               </button>
@@ -297,9 +297,9 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
       ) : null}
 
       {items.length === 0 ? (
-        <p className="text-sm text-zinc-500">Nenhum investimento cadastrado.</p>
+        <p className="text-sm text-muted">Nenhum investimento cadastrado.</p>
       ) : (
-        <ul className="divide-y divide-zinc-200 rounded-md border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+        <ul className={listClass}>
           {items.map((item) => (
             <li
               key={item.id}
@@ -310,7 +310,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
                   {item.name}
                   {item.ticker ? ` (${item.ticker})` : ''}
                 </p>
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-muted">
                   {item.investedOn.split('-').reverse().join('/')}
                   {item.quantity ? ` · qtd ${item.quantity}` : ''}
                 </p>
@@ -321,7 +321,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
                   <button
                     type="button"
                     onClick={() => setEditingId(item.id)}
-                    className="rounded-md px-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    className={`${btnGhostClass} text-muted`}
                   >
                     Editar
                   </button>
@@ -330,7 +330,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
                   <button
                     type="button"
                     onClick={() => void handleDelete(item.id)}
-                    className="rounded-md px-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    className={`${btnGhostClass} text-muted`}
                   >
                     Excluir
                   </button>

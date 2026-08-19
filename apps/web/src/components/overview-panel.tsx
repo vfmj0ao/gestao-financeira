@@ -199,12 +199,12 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
       <article className={`${CARD} p-5 sm:p-6`}>
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
-            <p className="text-sm text-zinc-500">{formatMonthTitle(current.month)}</p>
+            <p className="text-sm text-muted">{formatMonthTitle(current.month)}</p>
             <p className="mt-1 text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl">
               {maskMoney(current.balance, hidden)}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="text-sm text-zinc-500">Saldo</span>
+              <span className="text-sm text-muted">Saldo</span>
               {previous ? (
                 <TrendBadge
                   current={current.balance}
@@ -220,11 +220,11 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
         </div>
 
         <div className="mt-6">
-          <div className="mb-2 flex items-center justify-between text-xs text-zinc-500">
+          <div className="mb-2 flex items-center justify-between text-xs text-muted">
             <span>Entradas {maskMoney(current.income, hidden)}</span>
             <span>Saídas {maskMoney(current.expense, hidden)}</span>
           </div>
-          <div className="flex h-3 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+          <div className="flex h-3 overflow-hidden rounded-full bg-line">
             {incomeCents === 0 && expenseCents === 0 ? (
               <span className="sr-only">Sem movimento</span>
             ) : (
@@ -245,7 +245,7 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
             )}
           </div>
           {spentRatio !== null ? (
-            <p className="mt-2 text-xs text-zinc-500">
+            <p className="mt-2 text-xs text-muted">
               {spentRatio > 100 ? 'Saídas acima das entradas' : `${spentRatio}% das entradas usadas`}
             </p>
           ) : null}
@@ -339,7 +339,7 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
         <section className={`${CARD} p-4 sm:p-5`}>
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 className="text-sm font-medium">Saídas do mês</h2>
-            <Link className="text-xs text-zinc-500 underline" href="/relatorios">
+            <Link className="text-xs text-muted underline" href="/relatorios">
               Relatórios
             </Link>
           </div>
@@ -351,11 +351,11 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
                 <li key={row.name}>
                   <div className="mb-1 flex items-center justify-between gap-3 text-sm">
                     <span className="truncate">{row.name}</span>
-                    <span className="shrink-0 tabular-nums text-zinc-600 dark:text-zinc-300">
+                    <span className="shrink-0 tabular-nums text-muted">
                       {maskMoney(centsToAmount(row.cents), hidden)}
                     </span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                  <div className="h-2 overflow-hidden rounded-full bg-line">
                     <span
                       className="block h-full rounded-full bg-rose-700"
                       style={{ width: `${categoryMax > 0 ? Math.max(6, (row.cents / categoryMax) * 100) : 0}%` }}
@@ -385,7 +385,7 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
                   {option === 'ALL' ? 'Tudo' : option === 'INCOME' ? 'Entradas' : 'Saídas'}
                 </button>
               ))}
-              <Link className="ml-1 text-xs text-zinc-500 underline" href="/lancamentos">
+              <Link className="ml-1 text-xs text-muted underline" href="/lancamentos">
                 Ver
               </Link>
             </div>
@@ -412,7 +412,7 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
                     />
                     <span className="min-w-0">
                       <span className="block truncate text-sm">{item.description}</span>
-                      <span className="block text-xs text-zinc-500">
+                      <span className="block text-xs text-muted">
                         {formatIsoDate(item.occurredOn)}
                         {item.category ? ` · ${item.category.name}` : ''}
                       </span>
@@ -460,7 +460,7 @@ function MetricCard({
   const inner = (
     <>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm text-zinc-500">{label}</p>
+        <p className="text-sm text-muted">{label}</p>
         {previous && currentAmount && sense ? (
           <TrendBadge current={currentAmount} previous={previous} sense={sense} />
         ) : null}
@@ -471,7 +471,7 @@ function MetricCard({
           <Sparkline values={series} stroke={stroke} />
         </div>
       ) : (
-        <p className="mt-6 text-xs text-zinc-500">Total acumulado</p>
+        <p className="mt-6 text-xs text-muted">Total acumulado</p>
       )}
     </>
   );
@@ -518,7 +518,7 @@ function SavedRing({ percent, hidden }: { percent: number; hidden: boolean }) {
       </svg>
       <p className="absolute inset-0 flex flex-col items-center justify-center text-center">
         <span className="text-sm font-semibold tabular-nums">{hidden ? '••' : `${percent}%`}</span>
-        <span className="text-[10px] text-zinc-500">guardado</span>
+        <span className="text-[10px] text-muted">guardado</span>
       </p>
     </div>
   );

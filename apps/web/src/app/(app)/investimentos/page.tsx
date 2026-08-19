@@ -10,7 +10,7 @@ export default function InvestmentsPage() {
   return (
     <RequireAuth nextPath="/investimentos">
       <main id="conteudo-principal" className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 lg:px-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Investimentos</h1>
+        <h1 className="text-3xl tracking-tight">Investimentos</h1>
         {activeGroup ? (
           <InvestmentsPanel
             key={activeGroup.id}

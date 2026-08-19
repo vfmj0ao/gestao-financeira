@@ -21,6 +21,7 @@ import { chartNumber, formatBRL, formatMonthLabel, maskMoney } from '@/lib/money
 import { monthFromChartClick } from '@/lib/chart-click';
 import type { GroupReport } from '@/lib/types';
 import { usePreferences } from '@/components/preferences-provider';
+import { alertErrorClass, btnGhostClass, fieldClass, surfaceClass } from '@/lib/ui';
 
 type ReportsPanelProps = {
   groupId: string;
@@ -164,7 +165,7 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
             onChange={(event) =>
               setMonths(event.target.value as '6' | '12' | '24')
             }
-            className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+            className={fieldClass}
           >
             {PERIOD_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -177,14 +178,14 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
           type="button"
           onClick={handleExportCsv}
           disabled={!report || loading}
-          className="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:hover:bg-zinc-900"
+          className={`${btnGhostClass} border border-line disabled:opacity-60`}
         >
           Baixar CSV
         </button>
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className={alertErrorClass}>
           {error}
         </p>
       ) : null}
@@ -203,10 +204,10 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
           </dl>
 
           {!hasCashFlow ? (
-            <p className="text-zinc-500">Sem lançamentos neste período.</p>
+            <p className="text-muted">Sem lançamentos neste período.</p>
           ) : (
             <>
-              <figure className="flex flex-col gap-3">
+              <figure className={`${surfaceClass} flex flex-col gap-3 p-4 sm:p-5`}>
                 <figcaption className="text-sm font-medium">Fluxo mensal</figcaption>
                 <div className="h-72 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -248,7 +249,7 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
                 </div>
               </figure>
 
-              <figure className="flex flex-col gap-3">
+              <figure className={`${surfaceClass} flex flex-col gap-3 p-4 sm:p-5`}>
                 <figcaption className="text-sm font-medium">Acumulado</figcaption>
                 <div className="h-72 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -277,7 +278,7 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
 
               <div className="grid gap-6 lg:grid-cols-2">
                 {expensePie.length > 0 ? (
-                  <figure className="flex flex-col gap-3">
+                  <figure className={`${surfaceClass} flex flex-col gap-3 p-4 sm:p-5`}>
                     <figcaption className="text-sm font-medium">Saídas</figcaption>
                     <div className="h-72 w-full">
                       <ResponsiveContainer width="100%" height="100%">
@@ -308,7 +309,7 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
                 ) : null}
 
                 {incomeBars.length > 0 ? (
-                  <figure className="flex flex-col gap-3">
+                  <figure className={`${surfaceClass} flex flex-col gap-3 p-4 sm:p-5`}>
                     <figcaption className="text-sm font-medium">Entradas</figcaption>
                     <div className="h-72 w-full">
                       <ResponsiveContainer width="100%" height="100%">
@@ -334,13 +335,13 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
                 ) : null}
               </div>
 
-              <div className="overflow-x-auto">
+              <div className={`${surfaceClass} overflow-x-auto p-4 sm:p-5`}>
                 <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
                   <caption className="mb-3 text-left text-sm font-medium">
                     {formatMonthLabel(report.from)} — {formatMonthLabel(report.to)}
                   </caption>
                   <thead>
-                    <tr className="border-b border-zinc-200 dark:border-zinc-800">
+                    <tr className="border-b border-line">
                       <th scope="col" className="py-2 pr-3 font-medium">
                         Mês
                       </th>
@@ -362,10 +363,10 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
                     {report.months.map((row) => (
                       <tr
                         key={row.month}
-                        className={`cursor-pointer border-b border-zinc-100 dark:border-zinc-900 ${
+                        className={`cursor-pointer border-b border-line ${
                           focusMonth === row.month
-                            ? 'bg-zinc-100 dark:bg-zinc-900'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/60'
+                            ? 'bg-line/70'
+                            : 'hover:bg-line/40'
                         }`}
                         onClick={() => setFocusMonth(row.month)}
                       >
@@ -407,8 +408,8 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
-      <dt className="text-sm text-zinc-600 dark:text-zinc-400">{label}</dt>
+    <div className={`${surfaceClass} p-4`}>
+      <dt className="text-sm text-muted">{label}</dt>
       <dd className="mt-1 text-lg font-semibold">{value}</dd>
     </div>
   );
@@ -424,11 +425,11 @@ function CategoryTable({
   hidden: boolean;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className={`${surfaceClass} overflow-x-auto p-4`}>
       <table className="w-full max-w-xl border-collapse text-left text-sm">
         <caption className="mb-3 text-left text-sm font-medium">{caption}</caption>
         <thead>
-          <tr className="border-b border-zinc-200 dark:border-zinc-800">
+          <tr className="border-b border-line">
             <th scope="col" className="py-2 pr-3 font-medium">
               Categoria
             </th>
@@ -441,7 +442,7 @@ function CategoryTable({
           {rows.map((row) => (
             <tr
               key={row.name}
-              className="border-b border-zinc-100 dark:border-zinc-900"
+              className="border-b border-line"
             >
               <th scope="row" className="py-2 pr-3 font-normal">
                 {row.name}

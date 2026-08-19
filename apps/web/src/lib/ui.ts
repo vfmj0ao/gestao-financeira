@@ -9,3 +9,8 @@ export const btnGhostClass =
 
 export const surfaceClass =
   'rounded-2xl border border-line bg-card shadow-[0_8px_30px_rgba(28,25,23,0.04)]';
+
+export const alertErrorClass =
+  'rounded-xl border border-expense/40 bg-expense/10 px-3 py-2 text-sm text-expense';
+
+export const listClass = 'divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card';

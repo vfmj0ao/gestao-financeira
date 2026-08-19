@@ -5,6 +5,7 @@ import { apiFetch, ApiError } from '@/lib/api';
 import { currentMonth, maskMoney, shiftMonth } from '@/lib/money';
 import type { BudgetMonth } from '@/lib/types';
 import { usePreferences } from '@/components/preferences-provider';
+import { alertErrorClass, btnGhostClass, btnPrimaryClass, fieldClass, listClass } from '@/lib/ui';
 
 type BudgetsPanelProps = {
   groupId: string;
@@ -127,7 +128,7 @@ export function BudgetsPanel({ groupId, permissions }: BudgetsPanelProps) {
             type="month"
             value={month}
             onChange={(event) => setMonth(event.target.value)}
-            className="rounded-lg border border-zinc-300 bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-600"
+            className={fieldClass}
           />
         </div>
         {canEdit ? (
@@ -135,7 +136,7 @@ export function BudgetsPanel({ groupId, permissions }: BudgetsPanelProps) {
             type="button"
             disabled={pending}
             onClick={() => void handleCopy()}
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm disabled:opacity-60 dark:border-zinc-600"
+            className={`${btnGhostClass} border border-line disabled:opacity-60`}
           >
             Copiar mês anterior
           </button>
@@ -143,14 +144,14 @@ export function BudgetsPanel({ groupId, permissions }: BudgetsPanelProps) {
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className={alertErrorClass}>
           {error}
         </p>
       ) : null}
 
       {data ? (
         <form onSubmit={(event) => void handleSave(event)} className="flex flex-col gap-4">
-          <ul className="divide-y divide-zinc-200 rounded-2xl border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+          <ul className={listClass}>
             {data.items.map((item) => {
               const spentRatio =
                 item.limit && Number.parseFloat(item.limit) > 0
@@ -160,14 +161,14 @@ export function BudgetsPanel({ groupId, permissions }: BudgetsPanelProps) {
                 <li key={item.categoryId} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{item.name}</p>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-muted">
                       Gasto {maskMoney(item.spent, hidden)}
                       {item.limit ? ` · limite ${maskMoney(item.limit, hidden)}` : ''}
                     </p>
                     {item.limit ? (
-                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-line">
                         <span
-                          className={`block h-full rounded-full ${item.over ? 'bg-rose-700' : 'bg-teal-700'}`}
+                          className={`block h-full rounded-full ${item.over ? 'bg-expense' : 'bg-income'}`}
                           style={{ width: `${Math.max(item.spent === '0.00' ? 0 : 6, spentRatio)}%` }}
                         />
                       </div>
@@ -175,7 +176,7 @@ export function BudgetsPanel({ groupId, permissions }: BudgetsPanelProps) {
                   </div>
                   {canEdit ? (
                     <label className="flex flex-col gap-1 text-sm">
-                      <span className="text-xs text-zinc-500">Limite</span>
+                      <span className="text-xs text-muted">Limite</span>
                       <input
                         inputMode="decimal"
                         value={drafts[item.categoryId] ?? ''}
@@ -186,7 +187,7 @@ export function BudgetsPanel({ groupId, permissions }: BudgetsPanelProps) {
                           }))
                         }
                         placeholder="—"
-                        className="w-36 rounded-lg border border-zinc-300 bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-600"
+                        className={`w-36 ${fieldClass}`}
                       />
                     </label>
                   ) : (
@@ -202,7 +203,7 @@ export function BudgetsPanel({ groupId, permissions }: BudgetsPanelProps) {
             <button
               type="submit"
               disabled={pending}
-              className="w-fit rounded-lg bg-foreground px-4 py-2.5 text-background disabled:opacity-60"
+              className={`w-fit ${btnPrimaryClass}`}
             >
               {pending ? 'Salvando…' : 'Salvar'}
             </button>
