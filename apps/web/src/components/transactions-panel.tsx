@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { apiFetch, ApiError } from '@/lib/api';
-import { currentMonth, formatBRL, todayISODate } from '@/lib/money';
+import { currentMonth, maskMoney, shiftMonth, todayISODate } from '@/lib/money';
 import type { Category, MonthSummary, TransactionItem } from '@/lib/types';
+import { TrendBadge } from '@/components/trend-badge';
+import { usePreferences } from '@/components/preferences-provider';
 
 type TransactionsPanelProps = {
   groupId: string;
@@ -11,12 +13,14 @@ type TransactionsPanelProps = {
 };
 
 export function TransactionsPanel({ groupId, permissions }: TransactionsPanelProps) {
+  const { prefs } = usePreferences();
   const canCreate = permissions.includes('TRANSACTIONS_CREATE');
   const canUpdate = permissions.includes('TRANSACTIONS_UPDATE');
   const canDelete = permissions.includes('TRANSACTIONS_DELETE');
   const canManageCategories = permissions.includes('CATEGORIES_MANAGE');
   const [month, setMonth] = useState(currentMonth);
   const [summary, setSummary] = useState<MonthSummary | null>(null);
+  const [previousSummary, setPreviousSummary] = useState<MonthSummary | null>(null);
   const [items, setItems] = useState<TransactionItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [type, setType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE');
@@ -33,12 +37,14 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
   useEffect(() => {
     void (async () => {
       try {
-        const [summaryData, listData, categoryData] = await Promise.all([
+        const [summaryData, previousData, listData, categoryData] = await Promise.all([
           apiFetch<MonthSummary>(`/groups/${groupId}/summary?month=${month}`),
+          apiFetch<MonthSummary>(`/groups/${groupId}/summary?month=${shiftMonth(month, -1)}`),
           apiFetch<TransactionItem[]>(`/groups/${groupId}/transactions?month=${month}`),
           apiFetch<Category[]>(`/groups/${groupId}/categories`),
         ]);
         setSummary(summaryData);
+        setPreviousSummary(previousData);
         setItems(listData);
         setCategories(categoryData);
         setError(null);
@@ -134,7 +140,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
   return (
     <section aria-labelledby="lancamentos-titulo" className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <h2 id="lancamentos-titulo" className="text-xl font-semibold">
+        <h2 id="lancamentos-titulo" className="sr-only">
           Entradas e saídas
         </h2>
         <div className="flex flex-col gap-2">
@@ -154,20 +160,49 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
       {summary ? (
         <dl className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-md border border-zinc-200 px-4 py-3 dark:border-zinc-800">
-            <dt className="text-sm text-zinc-500">Entradas</dt>
+            <div className="flex items-center justify-between gap-2">
+              <dt className="text-sm text-zinc-500">Entradas</dt>
+              {previousSummary ? (
+                <TrendBadge
+                  current={summary.income}
+                  previous={previousSummary.income}
+                  sense="higher-is-better"
+                />
+              ) : null}
+            </div>
             <dd className="mt-1 text-lg font-semibold text-emerald-700 dark:text-emerald-400">
-              {formatBRL(summary.income)}
+              {maskMoney(summary.income, prefs.hideAmounts)}
             </dd>
           </div>
           <div className="rounded-md border border-zinc-200 px-4 py-3 dark:border-zinc-800">
-            <dt className="text-sm text-zinc-500">Saídas</dt>
+            <div className="flex items-center justify-between gap-2">
+              <dt className="text-sm text-zinc-500">Saídas</dt>
+              {previousSummary ? (
+                <TrendBadge
+                  current={summary.expense}
+                  previous={previousSummary.expense}
+                  sense="lower-is-better"
+                />
+              ) : null}
+            </div>
             <dd className="mt-1 text-lg font-semibold text-red-700 dark:text-red-400">
-              {formatBRL(summary.expense)}
+              {maskMoney(summary.expense, prefs.hideAmounts)}
             </dd>
           </div>
           <div className="rounded-md border border-zinc-200 px-4 py-3 dark:border-zinc-800">
-            <dt className="text-sm text-zinc-500">Saldo do mês</dt>
-            <dd className="mt-1 text-lg font-semibold">{formatBRL(summary.balance)}</dd>
+            <div className="flex items-center justify-between gap-2">
+              <dt className="text-sm text-zinc-500">Saldo</dt>
+              {previousSummary ? (
+                <TrendBadge
+                  current={summary.balance}
+                  previous={previousSummary.balance}
+                  sense="higher-is-better"
+                />
+              ) : null}
+            </div>
+            <dd className="mt-1 text-lg font-semibold">
+              {maskMoney(summary.balance, prefs.hideAmounts)}
+            </dd>
           </div>
         </dl>
       ) : null}
@@ -344,7 +379,7 @@ export function TransactionsPanel({ groupId, permissions }: TransactionsPanelPro
                   }
                 >
                   {item.type === 'INCOME' ? '+' : '-'}
-                  {formatBRL(item.amount)}
+                  {maskMoney(item.amount, prefs.hideAmounts)}
                 </p>
                 {canUpdate ? (
                   <button

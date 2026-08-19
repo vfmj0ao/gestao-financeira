@@ -8,6 +8,7 @@ export type UserPreferences = {
   contrast: ContrastPreference;
   fontScale: FontScale;
   reduceMotion: MotionPreference;
+  hideAmounts: boolean;
 };
 
 export const PREFS_KEY = 'gf_prefs';
@@ -17,6 +18,7 @@ export const DEFAULT_PREFS: UserPreferences = {
   contrast: 'normal',
   fontScale: 100,
   reduceMotion: 'system',
+  hideAmounts: false,
 };
 
 export function readPreferences(): UserPreferences {
@@ -38,6 +40,7 @@ export function readPreferences(): UserPreferences {
       fontScale:
         parsed.fontScale === 125 || parsed.fontScale === 150 ? parsed.fontScale : 100,
       reduceMotion: parsed.reduceMotion === 'always' ? 'always' : 'system',
+      hideAmounts: parsed.hideAmounts === true,
     };
   } catch {
     return DEFAULT_PREFS;
@@ -51,7 +54,8 @@ function samePrefs(a: UserPreferences, b: UserPreferences) {
     a.theme === b.theme &&
     a.contrast === b.contrast &&
     a.fontScale === b.fontScale &&
-    a.reduceMotion === b.reduceMotion
+    a.reduceMotion === b.reduceMotion &&
+    a.hideAmounts === b.hideAmounts
   );
 }
 

@@ -17,8 +17,9 @@ import {
   YAxis,
 } from 'recharts';
 import { apiFetch } from '@/lib/api';
-import { chartNumber, formatBRL, formatMonthLabel } from '@/lib/money';
+import { chartNumber, formatBRL, formatMonthLabel, maskMoney } from '@/lib/money';
 import type { GroupReport } from '@/lib/types';
+import { usePreferences } from '@/components/preferences-provider';
 
 type ReportsPanelProps = {
   groupId: string;
@@ -45,10 +46,12 @@ const PIE_COLORS = [
 ];
 
 export function ReportsPanel({ groupId }: ReportsPanelProps) {
+  const { prefs } = usePreferences();
   const [months, setMonths] = useState<'6' | '12' | '24'>('12');
   const [report, setReport] = useState<GroupReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [focusMonth, setFocusMonth] = useState<string | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -74,6 +77,7 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
   const monthlyChart = useMemo(
     () =>
       (report?.months ?? []).map((row) => ({
+        month: row.month,
         label: formatMonthLabel(row.month),
         receitas: chartNumber(row.income),
         despesas: chartNumber(row.expense),
@@ -82,11 +86,34 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
     [report],
   );
 
+  function formatChartMoney(value: unknown) {
+    if (prefs.hideAmounts) {
+      return 'R$ •••';
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return formatBRL(value.toFixed(2));
+    }
+    return formatBRL('0.00');
+  }
+
+  function money(amount: string) {
+    return maskMoney(amount, prefs.hideAmounts);
+  }
+
   const expensePie = useMemo(
     () =>
       (report?.expenseByCategory ?? []).map((row) => ({
         name: row.name,
         value: chartNumber(row.amount),
+      })),
+    [report],
+  );
+
+  const incomeBars = useMemo(
+    () =>
+      (report?.incomeByCategory ?? []).map((row) => ({
+        name: row.name,
+        valor: chartNumber(row.amount),
       })),
     [report],
   );
@@ -166,45 +193,55 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
       {report ? (
         <>
           <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <SummaryCard label="Receitas" value={formatBRL(report.totals.income)} />
-            <SummaryCard label="Despesas" value={formatBRL(report.totals.expense)} />
-            <SummaryCard label="Saldo do período" value={formatBRL(report.totals.balance)} />
+            <SummaryCard label="Entradas" value={money(report.totals.income)} />
+            <SummaryCard label="Saídas" value={money(report.totals.expense)} />
+            <SummaryCard label="Saldo" value={money(report.totals.balance)} />
             {report.investmentsTotal !== null ? (
-              <SummaryCard
-                label="Investimentos aplicados"
-                value={formatBRL(report.investmentsTotal)}
-              />
+              <SummaryCard label="Investido" value={money(report.investmentsTotal)} />
             ) : null}
           </dl>
 
           {!hasCashFlow ? (
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Ainda não há lançamentos neste período.
-            </p>
+            <p className="text-zinc-500">Sem lançamentos neste período.</p>
           ) : (
             <>
               <figure className="flex flex-col gap-3">
-                <figcaption className="text-sm font-medium">
-                  Receitas e despesas por mês
-                </figcaption>
+                <figcaption className="text-sm font-medium">Fluxo mensal</figcaption>
                 <div className="h-72 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={monthlyChart} accessibilityLayer>
+                    <BarChart
+                      data={monthlyChart}
+                      accessibilityLayer
+                      onClick={(state) => {
+                        const month = state?.activePayload?.[0]?.payload?.month as
+                          | string
+                          | undefined;
+                        if (month) {
+                          setFocusMonth(month);
+                        }
+                      }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" stroke="#a1a1aa" />
                       <XAxis dataKey="label" />
-                      <YAxis tickFormatter={formatAxisMoney} width={80} />
-                      <Tooltip formatter={formatTooltipMoney} />
+                      <YAxis
+                        tickFormatter={(value) => formatChartMoney(value)}
+                        width={80}
+                        hide={prefs.hideAmounts}
+                      />
+                      <Tooltip formatter={formatChartMoney} />
                       <Legend />
                       <Bar
                         dataKey="receitas"
-                        name="Receitas"
+                        name="Entradas"
                         fill={INCOME_COLOR}
+                        cursor="pointer"
                         isAnimationActive={false}
                       />
                       <Bar
                         dataKey="despesas"
-                        name="Despesas"
+                        name="Saídas"
                         fill={EXPENSE_COLOR}
+                        cursor="pointer"
                         isAnimationActive={false}
                       />
                     </BarChart>
@@ -213,21 +250,22 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
               </figure>
 
               <figure className="flex flex-col gap-3">
-                <figcaption className="text-sm font-medium">
-                  Saldo acumulado no período
-                </figcaption>
+                <figcaption className="text-sm font-medium">Acumulado</figcaption>
                 <div className="h-72 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={monthlyChart} accessibilityLayer>
                       <CartesianGrid strokeDasharray="3 3" stroke="#a1a1aa" />
                       <XAxis dataKey="label" />
-                      <YAxis tickFormatter={formatAxisMoney} width={80} />
-                      <Tooltip formatter={formatTooltipMoney} />
-                      <Legend />
+                      <YAxis
+                        tickFormatter={(value) => formatChartMoney(value)}
+                        width={80}
+                        hide={prefs.hideAmounts}
+                      />
+                      <Tooltip formatter={formatChartMoney} />
                       <Line
                         type="monotone"
                         dataKey="acumulado"
-                        name="Saldo acumulado"
+                        name="Acumulado"
                         stroke={BALANCE_COLOR}
                         strokeWidth={2}
                         dot={false}
@@ -238,43 +276,69 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
                 </div>
               </figure>
 
-              {expensePie.length > 0 ? (
-                <figure className="flex flex-col gap-3">
-                  <figcaption className="text-sm font-medium">
-                    Despesas por categoria
-                  </figcaption>
-                  <div className="h-80 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart accessibilityLayer>
-                        <Pie
-                          data={expensePie}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={100}
-                          isAnimationActive={false}
-                        >
-                          {expensePie.map((entry, index) => (
-                            <Cell
-                              key={entry.name}
-                              fill={PIE_COLORS[index % PIE_COLORS.length]}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={formatTooltipMoney} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </figure>
-              ) : null}
+              <div className="grid gap-6 lg:grid-cols-2">
+                {expensePie.length > 0 ? (
+                  <figure className="flex flex-col gap-3">
+                    <figcaption className="text-sm font-medium">Saídas</figcaption>
+                    <div className="h-72 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart accessibilityLayer>
+                          <Pie
+                            data={expensePie}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={90}
+                            isAnimationActive={false}
+                          >
+                            {expensePie.map((entry, index) => (
+                              <Cell
+                                key={entry.name}
+                                fill={PIE_COLORS[index % PIE_COLORS.length]}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={formatChartMoney} />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </figure>
+                ) : null}
+
+                {incomeBars.length > 0 ? (
+                  <figure className="flex flex-col gap-3">
+                    <figcaption className="text-sm font-medium">Entradas</figcaption>
+                    <div className="h-72 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={incomeBars} layout="vertical" accessibilityLayer>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#a1a1aa" />
+                          <XAxis
+                            type="number"
+                            hide={prefs.hideAmounts}
+                            tickFormatter={(value) => formatChartMoney(value)}
+                          />
+                          <YAxis type="category" dataKey="name" width={88} />
+                          <Tooltip formatter={formatChartMoney} />
+                          <Bar
+                            dataKey="valor"
+                            name="Valor"
+                            fill={INCOME_COLOR}
+                            isAnimationActive={false}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </figure>
+                ) : null}
+              </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
                   <caption className="mb-3 text-left text-sm font-medium">
-                    Valores mensais de {formatMonthLabel(report.from)} a{' '}
-                    {formatMonthLabel(report.to)}
+                    {formatMonthLabel(report.from)} — {formatMonthLabel(report.to)}
                   </caption>
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-zinc-800">
@@ -282,10 +346,10 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
                         Mês
                       </th>
                       <th scope="col" className="py-2 pr-3 font-medium">
-                        Receitas
+                        Entradas
                       </th>
                       <th scope="col" className="py-2 pr-3 font-medium">
-                        Despesas
+                        Saídas
                       </th>
                       <th scope="col" className="py-2 pr-3 font-medium">
                         Saldo
@@ -299,15 +363,20 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
                     {report.months.map((row) => (
                       <tr
                         key={row.month}
-                        className="border-b border-zinc-100 dark:border-zinc-900"
+                        className={`cursor-pointer border-b border-zinc-100 dark:border-zinc-900 ${
+                          focusMonth === row.month
+                            ? 'bg-zinc-100 dark:bg-zinc-900'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/60'
+                        }`}
+                        onClick={() => setFocusMonth(row.month)}
                       >
                         <th scope="row" className="py-2 pr-3 font-normal">
                           {formatMonthLabel(row.month)}
                         </th>
-                        <td className="py-2 pr-3">{formatBRL(row.income)}</td>
-                        <td className="py-2 pr-3">{formatBRL(row.expense)}</td>
-                        <td className="py-2 pr-3">{formatBRL(row.balance)}</td>
-                        <td className="py-2">{formatBRL(row.accumulated)}</td>
+                        <td className="py-2 pr-3">{money(row.income)}</td>
+                        <td className="py-2 pr-3">{money(row.expense)}</td>
+                        <td className="py-2 pr-3">{money(row.balance)}</td>
+                        <td className="py-2">{money(row.accumulated)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -316,15 +385,17 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
 
               {report.expenseByCategory.length > 0 ? (
                 <CategoryTable
-                  caption="Despesas por categoria"
+                  caption="Saídas"
                   rows={report.expenseByCategory}
+                  hidden={prefs.hideAmounts}
                 />
               ) : null}
 
               {report.incomeByCategory.length > 0 ? (
                 <CategoryTable
-                  caption="Receitas por categoria"
+                  caption="Entradas"
                   rows={report.incomeByCategory}
+                  hidden={prefs.hideAmounts}
                 />
               ) : null}
             </>
@@ -347,9 +418,11 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
 function CategoryTable({
   caption,
   rows,
+  hidden,
 }: {
   caption: string;
   rows: { name: string; amount: string }[];
+  hidden: boolean;
 }) {
   return (
     <div className="overflow-x-auto">
@@ -374,27 +447,13 @@ function CategoryTable({
               <th scope="row" className="py-2 pr-3 font-normal">
                 {row.name}
               </th>
-              <td className="py-2">{formatBRL(row.amount)}</td>
+              <td className="py-2">{maskMoney(row.amount, hidden)}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
   );
-}
-
-function formatAxisMoney(value: number) {
-  if (!Number.isFinite(value)) {
-    return formatBRL('0.00');
-  }
-  return formatBRL(value.toFixed(2));
-}
-
-function formatTooltipMoney(value: unknown) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return formatBRL('0.00');
-  }
-  return formatBRL(value.toFixed(2));
 }
 
 function downloadCsv(filename: string, rows: string[][]) {

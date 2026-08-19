@@ -10,12 +10,7 @@ export default function SettingsPage() {
   return (
     <RequireAuth nextPath="/ajustes">
       <main id="conteudo-principal" className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-8 lg:px-8">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Ajustes</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            Estas opções ficam neste aparelho e valem para facilitar a leitura e o contraste.
-          </p>
-        </div>
+        <h1 className="text-3xl font-semibold tracking-tight">Ajustes</h1>
 
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium">Tema</legend>
@@ -73,6 +68,18 @@ export default function SettingsPage() {
             <option value="system">Seguir o sistema</option>
             <option value="always">Reduzir sempre</option>
           </select>
+        </fieldset>
+
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-sm font-medium">Privacidade</legend>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={prefs.hideAmounts}
+              onChange={(event) => updatePrefs({ hideAmounts: event.target.checked })}
+            />
+            Ocultar valores
+          </label>
         </fieldset>
       </main>
     </RequireAuth>

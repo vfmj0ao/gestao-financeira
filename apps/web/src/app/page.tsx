@@ -7,10 +7,10 @@ export default function Home() {
       className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-6 px-6 py-16"
     >
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-        Finanças da família, com clareza e controle.
+        Finanças em família.
       </h1>
-      <p className="max-w-xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-        Crie sua conta, convide pessoas da família e defina o que cada uma pode ver ou alterar.
+      <p className="max-w-xl text-lg text-zinc-600 dark:text-zinc-400">
+        Entradas, saídas e investimentos, com papéis definidos por pessoa.
       </p>
       <div className="flex flex-wrap gap-3">
         <Link

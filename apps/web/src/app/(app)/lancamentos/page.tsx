@@ -10,12 +10,7 @@ export default function TransactionsPage() {
   return (
     <RequireAuth nextPath="/lancamentos">
       <main id="conteudo-principal" className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 lg:px-8">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Lançamentos</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            Registre entradas e saídas do grupo ativo.
-          </p>
-        </div>
+        <h1 className="text-3xl font-semibold tracking-tight">Lançamentos</h1>
         {activeGroup ? (
           <TransactionsPanel
             key={activeGroup.id}
@@ -23,7 +18,7 @@ export default function TransactionsPage() {
             permissions={activeGroup.permissions}
           />
         ) : (
-          <p>Escolha ou crie um grupo em Família para lançar valores.</p>
+          <p>Crie um grupo em Família.</p>
         )}
       </main>
     </RequireAuth>

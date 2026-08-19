@@ -38,6 +38,16 @@ export function formatMonthLabel(month: string) {
   return `${MONTH_LABELS[index] ?? monthPart}/${year}`;
 }
 
+export function shiftMonth(month: string, delta: number) {
+  const [year, monthPart] = month.split('-').map(Number);
+  const date = new Date(year, (monthPart ?? 1) - 1 + delta, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+export function maskMoney(amount: string, hidden: boolean) {
+  return hidden ? 'R$\u00a0•••' : formatBRL(amount);
+}
+
 /** Conversão só para eixos/tooltips de gráfico — não usar em cálculos. */
 export function chartNumber(amount: string) {
   return Number.parseFloat(amount);

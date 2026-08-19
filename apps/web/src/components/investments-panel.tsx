@@ -2,8 +2,9 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import { apiFetch, ApiError } from '@/lib/api';
-import { formatBRL, todayISODate } from '@/lib/money';
+import { maskMoney, todayISODate } from '@/lib/money';
 import type { InvestmentItem, InvestmentSummary } from '@/lib/types';
+import { usePreferences } from '@/components/preferences-provider';
 
 type InvestmentsPanelProps = {
   groupId: string;
@@ -11,6 +12,7 @@ type InvestmentsPanelProps = {
 };
 
 export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps) {
+  const { prefs } = usePreferences();
   const canCreate = permissions.includes('INVESTMENTS_CREATE');
   const canUpdate = permissions.includes('INVESTMENTS_UPDATE');
   const canDelete = permissions.includes('INVESTMENTS_DELETE');
@@ -90,12 +92,12 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
 
   return (
     <section aria-labelledby="investimentos-titulo" className="flex flex-col gap-6">
-      <h2 id="investimentos-titulo" className="text-xl font-semibold">
+      <h2 id="investimentos-titulo" className="sr-only">
         Investimentos
       </h2>
       {summary ? (
         <p>
-          Total aplicado: <strong>{formatBRL(summary.total)}</strong>
+          Total: <strong>{maskMoney(summary.total, prefs.hideAmounts)}</strong>
         </p>
       ) : null}
       {error ? (
@@ -215,7 +217,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <p className="font-semibold">{formatBRL(item.amount)}</p>
+                <p className="font-semibold">{maskMoney(item.amount, prefs.hideAmounts)}</p>
                 {canUpdate ? (
                   <button
                     type="button"
