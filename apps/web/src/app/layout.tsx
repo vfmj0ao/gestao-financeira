@@ -31,9 +31,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${outfit.variable} ${fraunces.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${outfit.variable} ${fraunces.variable} ${geistMono.variable} min-h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="min-h-dvh flex flex-col bg-background text-foreground">
         <ThemeScript />
         <a
           href="#conteudo-principal"

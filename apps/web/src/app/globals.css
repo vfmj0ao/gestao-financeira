@@ -61,11 +61,18 @@ html.dark[data-contrast='high'] {
   --line: #ffffff;
 }
 
+html {
+  background-color: var(--background);
+}
+
 body {
   background-color: var(--background);
   background-image:
     radial-gradient(ellipse 80% 50% at 0% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent),
     radial-gradient(ellipse 50% 40% at 100% 0%, color-mix(in srgb, var(--expense) 8%, transparent), transparent);
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: 100% 100dvh;
   color: var(--foreground);
   font-family: var(--font-outfit), system-ui, sans-serif;
 }

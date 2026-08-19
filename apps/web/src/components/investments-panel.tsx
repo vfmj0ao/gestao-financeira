@@ -1,10 +1,45 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { apiFetch, ApiError } from '@/lib/api';
-import { maskMoney, todayISODate } from '@/lib/money';
+import { chartNumber, maskMoney, todayISODate } from '@/lib/money';
 import type { InvestmentItem, InvestmentSummary } from '@/lib/types';
 import { usePreferences } from '@/components/preferences-provider';
+import { surfaceClass } from '@/lib/ui';
+
+const PIE_COLORS = [
+  '#0f5c56',
+  '#3d9a90',
+  '#1d4ed8',
+  '#a16207',
+  '#7e22ce',
+  '#be123c',
+  '#0f766e',
+  '#57534e',
+];
+
+function allocationSlices(items: InvestmentItem[]) {
+  const totals = new Map<string, number>();
+  for (const item of items) {
+    const label = item.ticker ? `${item.name} (${item.ticker})` : item.name;
+    const value = chartNumber(item.amount);
+    if (!Number.isFinite(value) || value <= 0) {
+      continue;
+    }
+    totals.set(label, (totals.get(label) ?? 0) + value);
+  }
+  const rows = [...totals.entries()]
+    .map(([name, value]) => ({ name, value }))
+    .sort((left, right) => right.value - left.value);
+  const maxSlices = 7;
+  if (rows.length <= maxSlices) {
+    return rows;
+  }
+  const head = rows.slice(0, maxSlices - 1);
+  const rest = rows.slice(maxSlices - 1).reduce((sum, row) => sum + row.value, 0);
+  return [...head, { name: 'Outros', value: rest }];
+}
 
 type InvestmentsPanelProps = {
   groupId: string;
@@ -23,6 +58,19 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
   const [pending, setPending] = useState(false);
 
   const editing = items.find((item) => item.id === editingId) ?? null;
+  const hidden = prefs.hideAmounts;
+  const slices = useMemo(() => allocationSlices(items), [items]);
+  const sliceTotal = slices.reduce((sum, row) => sum + row.value, 0);
+
+  function formatChartMoney(value: unknown) {
+    if (hidden) {
+      return 'R$ •••';
+    }
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return maskMoney('0.00', false);
+    }
+    return maskMoney(value.toFixed(2), false);
+  }
 
   useEffect(() => {
     void load();
@@ -95,10 +143,61 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
       <h2 id="investimentos-titulo" className="sr-only">
         Investimentos
       </h2>
-      {summary ? (
-        <p>
-          Total: <strong>{maskMoney(summary.total, prefs.hideAmounts)}</strong>
-        </p>
+      {slices.length > 0 ? (
+        <figure className={`${surfaceClass} p-4 sm:p-5`}>
+          <figcaption className="mb-3 text-sm font-medium">Composição</figcaption>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,16rem)_1fr] lg:items-center">
+            <div className="relative mx-auto h-56 w-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart accessibilityLayer>
+                  <Pie
+                    data={slices}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={58}
+                    outerRadius={86}
+                    paddingAngle={1}
+                    isAnimationActive={false}
+                  >
+                    {slices.map((entry, index) => (
+                      <Cell key={entry.name} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={formatChartMoney} />
+                </PieChart>
+              </ResponsiveContainer>
+              <p className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span className="text-[10px] uppercase tracking-wide text-muted">Total</span>
+                <span className="text-sm font-semibold tabular-nums">
+                  {maskMoney(summary?.total ?? '0.00', hidden)}
+                </span>
+              </p>
+            </div>
+            <ul className="flex flex-col gap-2">
+              {slices.map((row, index) => {
+                const percent = sliceTotal > 0 ? Math.round((row.value / sliceTotal) * 100) : 0;
+                return (
+                  <li key={row.name} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{row.name}</span>
+                    </span>
+                    <span className="shrink-0 tabular-nums text-muted">
+                      {percent}%
+                      {hidden ? '' : ` · ${maskMoney(row.value.toFixed(2), false)}`}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </figure>
       ) : null}
       {error ? (
         <p
@@ -217,7 +316,7 @@ export function InvestmentsPanel({ groupId, permissions }: InvestmentsPanelProps
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <p className="font-semibold">{maskMoney(item.amount, prefs.hideAmounts)}</p>
+                <p className="font-semibold">{maskMoney(item.amount, hidden)}</p>
                 {canUpdate ? (
                   <button
                     type="button"
