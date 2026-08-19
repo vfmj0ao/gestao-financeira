@@ -52,15 +52,15 @@ export default function RegisterPage() {
   return (
     <main
       id="conteudo-principal"
-      className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-12"
+      className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6 py-12"
     >
       <Suspense fallback={<p>Carregando formulário…</p>}>
         <RegisterForm />
       </Suspense>
-      <p className="mt-4 text-sm text-zinc-500">
+      <p className="mt-4 text-sm text-muted">
         A senha precisa ter no mínimo 8 caracteres, com letras e números.
       </p>
-      <p className="mt-6 text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mt-6 text-sm text-muted">
         Já tem conta?{' '}
         <Link className="underline" href="/entrar">
           Entrar

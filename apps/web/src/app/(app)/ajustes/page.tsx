@@ -3,6 +3,7 @@
 import { RequireAuth } from '@/components/require-auth';
 import { usePreferences } from '@/components/preferences-provider';
 import type { ContrastPreference, FontScale, MotionPreference, ThemePreference } from '@/lib/preferences';
+import { fieldClass } from '@/lib/ui';
 
 export default function SettingsPage() {
   const { prefs, updatePrefs } = usePreferences();
@@ -10,7 +11,7 @@ export default function SettingsPage() {
   return (
     <RequireAuth nextPath="/ajustes">
       <main id="conteudo-principal" className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-8 lg:px-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Ajustes</h1>
+        <h1 className="text-3xl tracking-tight">Ajustes</h1>
 
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium">Tema</legend>
@@ -19,7 +20,7 @@ export default function SettingsPage() {
             onChange={(event) =>
               updatePrefs({ theme: event.target.value as ThemePreference })
             }
-            className="max-w-xs rounded-lg border border-zinc-300 bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-600"
+            className={`max-w-xs ${fieldClass}`}
           >
             <option value="system">Igual ao sistema</option>
             <option value="light">Claro</option>
@@ -34,7 +35,7 @@ export default function SettingsPage() {
             onChange={(event) =>
               updatePrefs({ fontScale: Number(event.target.value) as FontScale })
             }
-            className="max-w-xs rounded-lg border border-zinc-300 bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-600"
+            className={`max-w-xs ${fieldClass}`}
           >
             <option value={100}>Normal</option>
             <option value={125}>Grande</option>
@@ -49,7 +50,7 @@ export default function SettingsPage() {
             onChange={(event) =>
               updatePrefs({ contrast: event.target.value as ContrastPreference })
             }
-            className="max-w-xs rounded-lg border border-zinc-300 bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-600"
+            className={`max-w-xs ${fieldClass}`}
           >
             <option value="normal">Padrão</option>
             <option value="high">Alto</option>
@@ -63,7 +64,7 @@ export default function SettingsPage() {
             onChange={(event) =>
               updatePrefs({ reduceMotion: event.target.value as MotionPreference })
             }
-            className="max-w-xs rounded-lg border border-zinc-300 bg-background px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-600"
+            className={`max-w-xs ${fieldClass}`}
           >
             <option value="system">Seguir o sistema</option>
             <option value="always">Reduzir sempre</option>
