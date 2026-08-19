@@ -25,11 +25,11 @@ import {
 } from '@/lib/money';
 import { amountToCents } from '@/lib/trend';
 import { monthFromChartClick } from '@/lib/chart-click';
-import type { GroupReport, InvestmentSummary, TransactionItem } from '@/lib/types';
+import type { BudgetMonth, GroupReport, InvestmentSummary, TransactionItem } from '@/lib/types';
 
 const INCOME_COLOR = '#0f766e';
 const EXPENSE_COLOR = '#be123c';
-const CARD = 'rounded-2xl border border-zinc-200/80 bg-[var(--card)] shadow-sm dark:border-zinc-800';
+const CARD = 'rounded-2xl border border-line bg-card shadow-[0_8px_30px_rgba(28,25,23,0.04)]';
 
 export function OverviewPanel({ groupId }: { groupId: string }) {
   const { prefs, updatePrefs } = usePreferences();
@@ -40,6 +40,7 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
   const [txFilter, setTxFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
   const [error, setError] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
+  const [overBudgets, setOverBudgets] = useState<{ name: string }[]>([]);
 
   useEffect(() => {
     void (async () => {
@@ -76,6 +77,16 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
         setTxError(
           loadError instanceof Error ? loadError.message : 'Não foi possível carregar lançamentos',
         );
+      }
+      try {
+        const budgetData = await apiFetch<BudgetMonth>(
+          `/groups/${groupId}/budgets?month=${selectedMonth}`,
+        );
+        setOverBudgets(
+          budgetData.items.filter((item) => item.over).map((item) => ({ name: item.name })),
+        );
+      } catch {
+        setOverBudgets([]);
       }
     })();
   }, [groupId, selectedMonth]);
@@ -159,8 +170,8 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
                 onClick={() => setSelectedMonth(row.month)}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium ${
                   selected
-                    ? 'bg-foreground text-background'
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
+                    ? 'bg-accent text-accent-fg'
+                    : 'bg-line/70 text-muted hover:bg-line'
                 }`}
               >
                 {formatMonthLabel(row.month)}
@@ -171,14 +182,14 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/lancamentos"
-            className="rounded-full bg-foreground px-3 py-1.5 text-xs font-medium text-background"
+            className="rounded-full bg-accent px-3 py-1.5 text-xs font-medium text-accent-fg"
           >
             Novo lançamento
           </Link>
           <button
             type="button"
             onClick={() => updatePrefs({ hideAmounts: !hidden })}
-            className="rounded-full border border-zinc-300 px-3 py-1.5 text-xs dark:border-zinc-600"
+            className="rounded-full border border-line px-3 py-1.5 text-xs"
           >
             {hidden ? 'Mostrar' : 'Ocultar'}
           </button>
@@ -240,6 +251,15 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
           ) : null}
         </div>
       </article>
+
+      {overBudgets.length > 0 ? (
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200">
+          Acima do limite: {overBudgets.map((item) => item.name).join(', ')}.{' '}
+          <Link className="underline" href="/orcamentos">
+            Orçamentos
+          </Link>
+        </p>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-3">
         <MetricCard
@@ -358,8 +378,8 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
                   onClick={() => setTxFilter(option)}
                   className={`rounded-full px-2.5 py-1 text-xs ${
                     txFilter === option
-                      ? 'bg-foreground text-background'
-                      : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                      ? 'bg-accent text-accent-fg'
+                      : 'text-muted hover:bg-line/70'
                   }`}
                 >
                   {option === 'ALL' ? 'Tudo' : option === 'INCOME' ? 'Entradas' : 'Saídas'}
@@ -381,7 +401,7 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
               {visibleTx.map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between gap-3 border-b border-zinc-100 py-2.5 last:border-0 dark:border-zinc-800"
+                  className="flex items-center justify-between gap-3 border-b border-line py-2.5 last:border-0"
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <span
@@ -458,7 +478,7 @@ function MetricCard({
 
   if (href) {
     return (
-      <Link href={href} className={`${CARD} block p-4 hover:border-zinc-300 dark:hover:border-zinc-700`}>
+      <Link href={href} className={`${CARD} block p-4 hover:border-accent/40`}>
         {inner}
       </Link>
     );
@@ -519,7 +539,7 @@ function ChartTooltip({
     return null;
   }
   return (
-    <div className="rounded-xl border border-zinc-200 bg-[var(--card)] px-3 py-2 text-xs shadow-md dark:border-zinc-700">
+    <div className="rounded-xl border border-line bg-card px-3 py-2 text-xs shadow-md">
       <p className="mb-1 font-medium">{label}</p>
       {payload.map((entry) => (
         <p key={entry.name} className="flex justify-between gap-6 tabular-nums">
@@ -533,7 +553,7 @@ function ChartTooltip({
 
 function EmptyNote({ href, label }: { href: string; label: string }) {
   return (
-    <p className="rounded-xl border border-dashed border-zinc-300 px-3 py-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
+    <p className="rounded-xl border border-dashed border-line px-3 py-6 text-center text-sm text-muted">
       <Link className="underline" href={href}>
         {label}
       </Link>

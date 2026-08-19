@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { btnPrimaryClass, fieldClass } from '@/lib/ui';
 
 type Field = {
   name: string;
@@ -38,13 +39,13 @@ export function AuthForm({ title, submitLabel, error, pending, fields, onSubmit 
   return (
     <form
       onSubmit={(event) => void handleSubmit(event)}
-      className="flex w-full max-w-md flex-col gap-5"
+      className="flex w-full max-w-md flex-col gap-5 rounded-2xl border border-line bg-card p-6 shadow-[0_8px_30px_rgba(28,25,23,0.04)] sm:p-8"
     >
       <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
       {message ? (
         <p
           role="alert"
-          className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className="rounded-xl border border-expense/40 bg-expense/10 px-3 py-2 text-sm text-expense"
         >
           {message}
         </p>
@@ -61,14 +62,14 @@ export function AuthForm({ title, submitLabel, error, pending, fields, onSubmit 
             autoComplete={field.autoComplete}
             required={field.required ?? true}
             defaultValue={field.defaultValue}
-            className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:border-zinc-700"
+            className={fieldClass}
           />
         </div>
       ))}
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-foreground px-4 py-2.5 text-background hover:opacity-90 disabled:opacity-60"
+        className={btnPrimaryClass}
       >
         {pending ? 'Aguarde…' : submitLabel}
       </button>

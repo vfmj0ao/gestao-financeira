@@ -39,12 +39,12 @@ export default function LoginPage() {
   return (
     <main
       id="conteudo-principal"
-      className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-12"
+      className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6 py-12"
     >
       <Suspense fallback={<p>Carregando formulário…</p>}>
         <LoginForm />
       </Suspense>
-      <p className="mt-6 text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mt-6 text-sm text-muted">
         Ainda não tem conta?{' '}
         <Link className="underline" href="/cadastro">
           Criar conta
