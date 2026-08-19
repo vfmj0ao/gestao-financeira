@@ -93,3 +93,17 @@ export type GroupReport = {
   incomeByCategory: ReportCategoryTotal[];
   investmentsTotal: string | null;
 };
+
+export type BudgetItem = {
+  categoryId: string;
+  name: string;
+  limit: string | null;
+  spent: string;
+  remaining: string | null;
+  over: boolean;
+};
+
+export type BudgetMonth = {
+  month: string;
+  items: BudgetItem[];
+};
