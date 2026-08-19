@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import { apiFetch } from '@/lib/api';
 import { chartNumber, formatBRL, formatMonthLabel, maskMoney } from '@/lib/money';
+import { monthFromChartClick } from '@/lib/chart-click';
 import type { GroupReport } from '@/lib/types';
 import { usePreferences } from '@/components/preferences-provider';
 
@@ -213,9 +214,7 @@ export function ReportsPanel({ groupId }: ReportsPanelProps) {
                       data={monthlyChart}
                       accessibilityLayer
                       onClick={(state) => {
-                        const month = state?.activePayload?.[0]?.payload?.month as
-                          | string
-                          | undefined;
+                        const month = monthFromChartClick(state);
                         if (month) {
                           setFocusMonth(month);
                         }
