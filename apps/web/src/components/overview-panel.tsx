@@ -24,6 +24,7 @@ import {
   maskMoney,
 } from '@/lib/money';
 import { amountToCents } from '@/lib/trend';
+import { monthFromChartClick } from '@/lib/chart-click';
 import type { BudgetMonth, GroupReport, InvestmentSummary, TransactionItem } from '@/lib/types';
 
 const INCOME_COLOR = '#0f766e';
@@ -295,7 +296,7 @@ export function OverviewPanel({ groupId }: { groupId: string }) {
               accessibilityLayer
               barGap={4}
               onClick={(state) => {
-                const month = state?.activePayload?.[0]?.payload?.month as string | undefined;
+                const month = monthFromChartClick(state);
                 if (month) {
                   setSelectedMonth(month);
                 }
