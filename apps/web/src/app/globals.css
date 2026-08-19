@@ -1,10 +1,15 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --muted: #475569;
+  --background: #f3eee6;
+  --foreground: #1c1917;
+  --card: #fffcf7;
+  --muted: #57534e;
+  --accent: #0f5c56;
+  --accent-fg: #f7f4ee;
+  --line: #e4ddd2;
+  --income: #0f766e;
+  --expense: #be123c;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -12,15 +17,28 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-line: var(--line);
+  --color-income: var(--income);
+  --color-expense: var(--expense);
+  --font-sans: var(--font-outfit);
+  --font-display: var(--font-fraunces);
   --font-mono: var(--font-geist-mono);
 }
 
 .dark {
-  --background: #0b1220;
-  --foreground: #e2e8f0;
-  --card: #111827;
-  --muted: #94a3b8;
+  --background: #121614;
+  --foreground: #ece7df;
+  --card: #1b211e;
+  --muted: #a8a29e;
+  --accent: #3d9a90;
+  --accent-fg: #071513;
+  --line: #2c3330;
+  --income: #5eead4;
+  --expense: #fb7185;
 }
 
 html[data-contrast='high'] {
@@ -28,6 +46,9 @@ html[data-contrast='high'] {
   --foreground: #000000;
   --card: #ffffff;
   --muted: #000000;
+  --accent: #004d40;
+  --accent-fg: #ffffff;
+  --line: #000000;
 }
 
 html.dark[data-contrast='high'] {
@@ -35,12 +56,23 @@ html.dark[data-contrast='high'] {
   --foreground: #ffffff;
   --card: #000000;
   --muted: #ffffff;
+  --accent: #ffffff;
+  --accent-fg: #000000;
+  --line: #ffffff;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 0% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent),
+    radial-gradient(ellipse 50% 40% at 100% 0%, color-mix(in srgb, var(--expense) 8%, transparent), transparent);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-outfit), system-ui, sans-serif;
+}
+
+.font-display,
+h1 {
+  font-family: var(--font-fraunces), Georgia, serif;
 }
 
 @media (prefers-reduced-motion: reduce) {
