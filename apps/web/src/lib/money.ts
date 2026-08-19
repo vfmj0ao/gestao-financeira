@@ -32,10 +32,44 @@ const MONTH_LABELS = [
   'dez',
 ];
 
+const MONTH_NAMES = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+];
+
 export function formatMonthLabel(month: string) {
   const [year, monthPart] = month.split('-');
   const index = Number(monthPart) - 1;
   return `${MONTH_LABELS[index] ?? monthPart}/${year}`;
+}
+
+export function formatMonthTitle(month: string) {
+  const [year, monthPart] = month.split('-');
+  const index = Number(monthPart) - 1;
+  return `${MONTH_NAMES[index] ?? monthPart} ${year}`;
+}
+
+export function formatIsoDate(isoDate: string) {
+  const [, month, day] = isoDate.split('-');
+  return `${day}/${month}`;
+}
+
+export function centsToAmount(cents: number) {
+  const negative = cents < 0;
+  const abs = Math.abs(cents);
+  const whole = Math.floor(abs / 100);
+  const fraction = String(abs % 100).padStart(2, '0');
+  return `${negative ? '-' : ''}${whole}.${fraction}`;
 }
 
 export function shiftMonth(month: string, delta: number) {

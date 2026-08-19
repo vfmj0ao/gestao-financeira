@@ -19,14 +19,14 @@ export function TrendBadge({
 
   const toneClass =
     tone === 'good'
-      ? 'text-emerald-700 dark:text-emerald-400'
+      ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
       : tone === 'bad'
-        ? 'text-red-700 dark:text-red-400'
-        : 'text-zinc-500 dark:text-zinc-400';
+        ? 'bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-300'
+        : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300';
 
   return (
     <span
-      className={`inline-flex items-center gap-1 text-sm font-semibold tabular-nums ${toneClass}`}
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${toneClass}`}
       aria-label={trendAriaLabel(trend)}
       title={trendAriaLabel(trend)}
     >
