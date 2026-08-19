@@ -22,4 +22,18 @@ export class UsersRepository {
   ): Promise<User> {
     return db.user.create({ data });
   }
+
+  updateName(id: string, name: string): Promise<User> {
+    return this.prisma.user.update({
+      where: { id },
+      data: { name },
+    });
+  }
+
+  updatePasswordHash(id: string, passwordHash: string): Promise<User> {
+    return this.prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+    });
+  }
 }

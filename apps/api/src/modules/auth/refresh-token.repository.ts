@@ -34,4 +34,11 @@ export class RefreshTokenRepository {
       data: { revokedAt: new Date() },
     });
   }
+
+  revokeOthersForUser(userId: string, keepId: string) {
+    return this.prisma.refreshToken.updateMany({
+      where: { userId, revokedAt: null, id: { not: keepId } },
+      data: { revokedAt: new Date() },
+    });
+  }
 }

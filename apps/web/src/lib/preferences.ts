@@ -9,6 +9,9 @@ export type UserPreferences = {
   fontScale: FontScale;
   reduceMotion: MotionPreference;
   hideAmounts: boolean;
+  underlineLinks: boolean;
+  comfortableReading: boolean;
+  plainBackground: boolean;
 };
 
 export const PREFS_KEY = 'gf_prefs';
@@ -19,6 +22,9 @@ export const DEFAULT_PREFS: UserPreferences = {
   fontScale: 100,
   reduceMotion: 'system',
   hideAmounts: false,
+  underlineLinks: false,
+  comfortableReading: false,
+  plainBackground: false,
 };
 
 export function readPreferences(): UserPreferences {
@@ -41,6 +47,9 @@ export function readPreferences(): UserPreferences {
         parsed.fontScale === 125 || parsed.fontScale === 150 ? parsed.fontScale : 100,
       reduceMotion: parsed.reduceMotion === 'always' ? 'always' : 'system',
       hideAmounts: parsed.hideAmounts === true,
+      underlineLinks: parsed.underlineLinks === true,
+      comfortableReading: parsed.comfortableReading === true,
+      plainBackground: parsed.plainBackground === true,
     };
   } catch {
     return DEFAULT_PREFS;
@@ -55,7 +64,10 @@ function samePrefs(a: UserPreferences, b: UserPreferences) {
     a.contrast === b.contrast &&
     a.fontScale === b.fontScale &&
     a.reduceMotion === b.reduceMotion &&
-    a.hideAmounts === b.hideAmounts
+    a.hideAmounts === b.hideAmounts &&
+    a.underlineLinks === b.underlineLinks &&
+    a.comfortableReading === b.comfortableReading &&
+    a.plainBackground === b.plainBackground
   );
 }
 
@@ -74,6 +86,21 @@ export function applyPreferences(prefs: UserPreferences) {
     root.dataset.reduceMotion = 'always';
   } else {
     delete root.dataset.reduceMotion;
+  }
+  if (prefs.underlineLinks) {
+    root.dataset.underlineLinks = 'on';
+  } else {
+    delete root.dataset.underlineLinks;
+  }
+  if (prefs.comfortableReading) {
+    root.dataset.reading = 'comfortable';
+  } else {
+    delete root.dataset.reading;
+  }
+  if (prefs.plainBackground) {
+    root.dataset.plainBg = 'on';
+  } else {
+    delete root.dataset.plainBg;
   }
 }
 

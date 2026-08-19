@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Patch,
   Post,
   Req,
   Res,
@@ -16,10 +17,14 @@ import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { AuthService } from './auth.service';
 import {
+  changePasswordSchema,
   loginSchema,
   registerSchema,
+  updateProfileSchema,
+  type ChangePasswordInput,
   type LoginInput,
   type RegisterInput,
+  type UpdateProfileInput,
 } from './auth.schemas';
 
 @Controller('auth')
@@ -67,5 +72,36 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   me(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.me(user.id);
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  updateMe(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body(new ZodValidationPipe(updateProfileSchema)) body: UpdateProfileInput,
+  ) {
+    return this.authService.updateProfile(user.id, body);
+  }
+
+  @Post('password')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  changePassword(
+    @CurrentUser() user: AuthenticatedUser,
+    @Req() request: Request,
+    @Body(new ZodValidationPipe(changePasswordSchema)) body: ChangePasswordInput,
+  ) {
+    return this.authService.changePassword(user.id, body, request);
+  }
+
+  @Post('logout-others')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  logoutOthers(
+    @CurrentUser() user: AuthenticatedUser,
+    @Req() request: Request,
+  ) {
+    return this.authService.logoutOthers(user.id, request);
   }
 }

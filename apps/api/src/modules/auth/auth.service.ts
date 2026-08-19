@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
@@ -13,7 +14,12 @@ import { generateUrlToken, hashToken } from '../../common/auth/token';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { familyGroupName, GroupsService } from '../groups/groups.service';
 import { UsersRepository } from '../users/users.repository';
-import type { LoginInput, RegisterInput } from './auth.schemas';
+import type {
+  ChangePasswordInput,
+  LoginInput,
+  RegisterInput,
+  UpdateProfileInput,
+} from './auth.schemas';
 import { RefreshTokenRepository } from './refresh-token.repository';
 
 const REFRESH_COOKIE = 'gf_refresh';
@@ -149,6 +155,59 @@ export class AuthService {
       throw new UnauthorizedException('Sessão inválida');
     }
     return this.toPublicUser(user);
+  }
+
+  async updateProfile(userId: string, input: UpdateProfileInput) {
+    const user = await this.usersRepository.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('Sessão inválida');
+    }
+    const updated = await this.usersRepository.updateName(userId, input.name);
+    return this.toPublicUser(updated);
+  }
+
+  async changePassword(userId: string, input: ChangePasswordInput, request: Request) {
+    const user = await this.usersRepository.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('Sessão inválida');
+    }
+
+    const valid = await argon2.verify(user.passwordHash, input.currentPassword);
+    if (!valid) {
+      throw new BadRequestException('Senha atual incorreta');
+    }
+
+    const passwordHash = await argon2.hash(input.newPassword, {
+      type: argon2.argon2id,
+    });
+    await this.usersRepository.updatePasswordHash(userId, passwordHash);
+    await this.revokeOtherSessions(userId, request);
+    return { ok: true as const };
+  }
+
+  async logoutOthers(userId: string, request: Request) {
+    const user = await this.usersRepository.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('Sessão inválida');
+    }
+    await this.revokeOtherSessions(userId, request);
+    return { ok: true as const };
+  }
+
+  private async revokeOtherSessions(userId: string, request: Request) {
+    const rawToken = readRefreshCookie(request);
+    if (!rawToken) {
+      await this.refreshTokenRepository.revokeAllForUser(userId);
+      return;
+    }
+    const stored = await this.refreshTokenRepository.findActiveByHash(
+      hashToken(rawToken),
+    );
+    if (!stored || stored.userId !== userId || stored.revokedAt) {
+      await this.refreshTokenRepository.revokeAllForUser(userId);
+      return;
+    }
+    await this.refreshTokenRepository.revokeOthersForUser(userId, stored.id);
   }
 
   private async createSession(user: User, response: Response) {
